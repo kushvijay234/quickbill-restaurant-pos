@@ -1,0 +1,5 @@
+{
+  "name": "QuickBill Restaurant POS",
+  "description": "A modern and intuitive point-of-sale (POS) and billing application for restaurants. It allows staff to manage menu items, take orders, handle different currencies, and print customer bills efficiently.",
+  "requestFramePermissions": []
+}
