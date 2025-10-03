@@ -30,7 +30,7 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
         // Token is invalid or expired, clear session
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/'; // Force a reload to the login page
+        window.location.href = '/'; 
         throw new Error('401: Unauthorized. Please log in again.');
     }
 
