@@ -1,15 +1,12 @@
-interface ImportMetaEnv {
-    readonly VITE_API_BASE_URL: string;
-}
-  
-declare global {
-    interface ImportMeta {
-        readonly env: ImportMetaEnv;
-    }
-}
+// Fix: Add triple-slash directive to include Vite's client types, which defines import.meta.env.
+/// <reference types="vite/client" />
+
 import { logger } from './logger';
 
-const API_BASE_URL = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || '/api';
+// Use absolute URL for production and Vite proxy for development
+const API_BASE_URL = import.meta.env.PROD 
+  ? 'https://quickbill-restaurant-pos.onrender.com/api'
+  : '/api';
 
 const request = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
