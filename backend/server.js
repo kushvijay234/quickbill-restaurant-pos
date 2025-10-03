@@ -13,6 +13,29 @@ connectDB();
 
 const app = express();
 
+// Body parser
+app.use(express.json());
+
+// Enable CORS
+const allowedOrigins = [
+  'https://quickbill-restaurant-pos.vercel.app',
+  'http://localhost:5173', // For local development
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
 // Seed admin user
 const seedAdminUser = async () => {
     try {
@@ -38,28 +61,7 @@ mongoose.connection.once('open', () => {
 });
 
 
-// Body parser
-app.use(express.json());
 
-// Enable CORS
-const allowedOrigins = [
-  'https://quickbill-restaurant-pos.vercel.app',
-  'http://localhost:5173', // For local development
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
 
 // Mount routers
 app.use('/api/auth', require('./routes/auth'));
