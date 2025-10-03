@@ -5,7 +5,7 @@ import { logger } from './logger';
 
 // Use absolute URL for production and Vite proxy for development
 const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://quickbill-restaurant-pos.onrender.com/api'
+  ? 'https://quickbill-restaurant-pos-1.onrender.com/api'
   : '/api';
 
 const request = async (endpoint: string, options: RequestInit = {}) => {
