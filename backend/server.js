@@ -17,24 +17,13 @@ const app = express();
 app.use(express.json());
 
 // Enable CORS
-const allowedOrigins = [
-  'https://quickbill-restaurant-pos.vercel.app',
-  'http://localhost:5173', // For local development
-];
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://quickbill-restaurant-pos.vercel.app"], // your React app URLs
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Seed admin user
 const seedAdminUser = async () => {
