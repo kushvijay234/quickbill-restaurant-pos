@@ -44,6 +44,7 @@ app.use(express.json());
 // Enable CORS
 const allowedOrigins = [
     process.env.FRONTEND_URL, // e.g., https://your-frontend.vercel.app
+    'https://quickbill-restaurant-pos.vercel.app/',
     'http://localhost:5173', // For local development
 ].filter(Boolean);
 
