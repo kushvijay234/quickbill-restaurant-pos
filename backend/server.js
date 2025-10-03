@@ -5,62 +5,60 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const User = require('./models/user');
 
-// Load env vars
+// Load environment variables
 dotenv.config();
 
-// Connect to database
+// Connect to MongoDB
 connectDB();
 
 const app = express();
 
 // Seed admin user
 const seedAdminUser = async () => {
-    try {
-        const adminExists = await User.findOne({ role: 'admin' });
-        if (!adminExists) {
-            console.log('Admin user not found, creating one...');
-            await User.create({
-                username: process.env.ADMIN_USERNAME || 'admin',
-                password: process.env.ADMIN_PASSWORD || 'Test@1234',
-                role: 'admin'
-            });
-            console.log('Admin user created with default credentials (admin/Test@1234).');
-        }
-    } catch (error) {
-        console.error('Error seeding admin user:', error);
-        process.exit(1);
+  try {
+    const adminExists = await User.findOne({ role: 'admin' });
+    if (!adminExists) {
+      console.log('Admin user not found, creating one...');
+      await User.create({
+        username: process.env.ADMIN_USERNAME || 'admin',
+        password: process.env.ADMIN_PASSWORD || 'Test@1234',
+        role: 'admin',
+      });
+      console.log('✅ Admin user created with default credentials (admin/Test@1234)');
     }
+  } catch (error) {
+    console.error('❌ Error seeding admin user:', error);
+    process.exit(1);
+  }
 };
 
-// Wait for DB connection before seeding
 mongoose.connection.once('open', () => {
-    seedAdminUser();
+  seedAdminUser();
 });
 
-
-// Body parser
+// Middleware
 app.use(express.json());
 
-// Enable CORS
+// CORS setup
 const allowedOrigins = [
-    process.env.FRONTEND_URL, // e.g., https://your-frontend.vercel.app
-    'https://quickbill-restaurant-pos.vercel.app/',
-    'http://localhost:5173', // For local development
+  process.env.FRONTEND_URL, // e.g., https://quickbill-restaurant-pos.vercel.app
+  'http://localhost:5173',
 ].filter(Boolean);
 
-const corsOptions = {
+app.use(
+  cors({
     origin: (origin, callback) => {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     },
-};
-app.use(cors(corsOptions));
+    credentials: true,
+  })
+);
 
-// Mount routers
+// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/menu', require('./routes/menu'));
 app.use('/api/orders', require('./routes/orders'));
@@ -68,8 +66,8 @@ app.use('/api/profile', require('./routes/profile'));
 app.use('/api/logs', require('./routes/logs'));
 app.use('/api/admin', require('./routes/admin'));
 
+// Start server
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
