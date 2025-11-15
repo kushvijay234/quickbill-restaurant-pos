@@ -7,7 +7,7 @@ interface OrderSummaryProps {
   currency: ICurrency;
   customer: ICustomer;
   onCustomerChange: (customer: ICustomer) => void;
-  onQuantityChange: (itemId: string, newQuantity: number) => void;
+  onQuantityChange: (itemId: string, variantName: string, newQuantity: number) => void;
   onClearOrder: () => void;
   onProceedToPayment: () => void;
   subtotal: number;
@@ -65,16 +65,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">Your order is empty.</p>
         ) : (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {orderItems.map(({ item, quantity, priceAtOrder }) => (
-              <li key={item.id} className="py-3 flex items-center justify-between">
+            {orderItems.map(({ item, quantity, selectedVariant }) => (
+              <li key={`${item.id}-${selectedVariant.name}`} className="py-3 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-800 dark:text-gray-100">{item.name}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{currency.symbol}{(priceAtOrder * currency.rate).toFixed(2)}</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-100">{item.name} <span className="text-xs text-gray-500">({selectedVariant.name})</span></p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{currency.symbol}{(selectedVariant.price * currency.rate).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center">
-                  <button onClick={() => onQuantityChange(item.id, quantity - 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">-</button>
+                  <button onClick={() => onQuantityChange(item.id, selectedVariant.name, quantity - 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">-</button>
                   <span className="w-8 text-center dark:text-gray-200">{quantity}</span>
-                  <button onClick={() => onQuantityChange(item.id, quantity + 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">+</button>
+                  <button onClick={() => onQuantityChange(item.id, selectedVariant.name, quantity + 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">+</button>
                 </div>
               </li>
             ))}

@@ -1,7 +1,12 @@
+export interface IMenuItemVariant {
+  name: string;
+  price: number;
+}
+
 export interface IMenuItem {
   id: string;
   name: string;
-  price: number; // Price is always in INR (base currency)
+  variants: IMenuItemVariant[];
   imageUrl: string;
   userId?: string | { username: string }; // Optional for admin view
   createdAt?: string; // Optional for sorting
@@ -10,7 +15,7 @@ export interface IMenuItem {
 export interface IOrderItem {
   item: IMenuItem;
   quantity: number;
-  priceAtOrder: number; // Price of the item at the time it was added to the order
+  selectedVariant: IMenuItemVariant;
 }
 
 export interface ICustomer {
@@ -26,7 +31,7 @@ export interface ICurrency {
 
 export interface INotification {
   message: string;
-  type: 'success' | 'error';
+  type: 'success' | 'error' | 'warning';
 }
 
 export type PaymentMethod = 'cash' | 'upi' | 'card';
@@ -49,6 +54,7 @@ export interface IProfile {
   restaurantName: string;
   address: string;
   phone: string;
+  logoUrl?: string;
 }
 
 export type UserRole = 'admin' | 'staff';

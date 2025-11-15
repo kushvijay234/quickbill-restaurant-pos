@@ -1,14 +1,28 @@
 const mongoose = require('mongoose');
 
+const MenuItemVariantSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: [true, 'Variant name is required'],
+        trim: true,
+    },
+    price: {
+        type: Number,
+        required: [true, 'Variant price is required'],
+    }
+}, { _id: false });
+
+
 const MenuItemSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add a name'],
         trim: true,
     },
-    price: {
-        type: Number,
-        required: [true, 'Please add a price'],
+    variants: {
+        type: [MenuItemVariantSchema],
+        required: true,
+        validate: [v => Array.isArray(v) && v.length > 0, 'At least one price variant is required']
     },
     imageUrl: {
         type: String,

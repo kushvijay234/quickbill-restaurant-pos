@@ -12,7 +12,10 @@ const OrderSchema = new mongoose.Schema({
             imageUrl: { type: String, required: true },
         },
         quantity: { type: Number, required: true },
-        priceAtOrder: { type: Number, required: true },
+        selectedVariant: {
+            name: { type: String, required: true },
+            price: { type: Number, required: true }
+        },
     }],
     subtotal: {
         type: Number,

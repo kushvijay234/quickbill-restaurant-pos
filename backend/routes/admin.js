@@ -148,12 +148,18 @@ router.post('/menu', async (req, res) => {
         if (!userExists) {
             return res.status(404).json({ message: 'User to assign item to not found.' });
         }
+        
+        // FIX: The schema expects 'variants', not 'price'. Create a default variant.
+        const variants = [{ name: 'Default', price: parseFloat(price) }];
 
-        const newItem = new MenuItem({ name, price, imageUrl, userId });
+        const newItem = new MenuItem({ name, variants, imageUrl, userId });
         const menuItem = await newItem.save();
         res.status(201).json(menuItem);
     } catch (err) {
         console.error(err.message);
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ msg: Object.values(err.errors).map(val => val.message).join(', ') });
+        }
         res.status(500).send('Server Error');
     }
 });

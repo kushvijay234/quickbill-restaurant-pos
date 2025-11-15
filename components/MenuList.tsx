@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import { IMenuItem, ICurrency, UserRole } from '../types';
+import { IMenuItem, ICurrency, UserRole, IMenuItemVariant } from '../types';
 import MenuItem from './MenuItem';
 import { api } from '../services/api';
 import { logger } from '../services/logger';
 
 interface MenuListProps {
   currency: ICurrency;
-  onAddToOrder: (item: IMenuItem) => void;
+  onAddToOrder: (item: IMenuItem, variant: IMenuItemVariant) => void;
   onEditItem: (item: IMenuItem) => void;
   onDeleteItem: (itemId: string) => void;
   onDeleteMultipleItems: (itemIds: string[]) => void;
@@ -36,6 +35,7 @@ const MenuList: React.FC<MenuListProps> = ({ currency, onAddToOrder, onEditItem,
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const [selectedItemIds, setSelectedItemIds] = useState(new Set<string>());
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const fetchMenuItems = useCallback(async () => {
     setIsLoading(true);
@@ -70,6 +70,23 @@ const MenuList: React.FC<MenuListProps> = ({ currency, onAddToOrder, onEditItem,
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
+  
+  // Effect to close dropdown when clicking outside
+  useEffect(() => {
+    if (!openDropdownId) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const dropdownContainer = document.querySelector(`[data-dropdown-id="${openDropdownId}"]`);
+      if (dropdownContainer && !dropdownContainer.contains(event.target as Node)) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdownId]);
 
 
   const handlePageChange = (page: number) => {
@@ -183,11 +200,65 @@ const MenuList: React.FC<MenuListProps> = ({ currency, onAddToOrder, onEditItem,
                               <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-cover rounded-md" />
                               {item.name}
                           </th>
-                          <td className="px-6 py-4">{currency.symbol}{(item.price * currency.rate).toFixed(2)}</td>
-                          <td className="px-6 py-4 text-right space-x-2">
-                              <button onClick={() => onAddToOrder(item)} className="font-medium text-indigo-600 dark:text-indigo-500 hover:underline">Add</button>
-                              <button onClick={() => onEditItem(item)} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
-                              <button onClick={() => onDeleteItem(item.id)} className="font-medium text-red-600 dark:text-red-500 hover:underline">Delete</button>
+                          <td className="px-6 py-4">
+                            {item.variants && item.variants.length > 0
+                                ? item.variants.map(v => `${currency.symbol}${(v.price * currency.rate).toFixed(2)} (${v.name})`).join(' / ')
+                                : <span className="text-red-500 font-semibold">No price</span>
+                            }
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                                <div className="relative inline-block text-left" data-dropdown-id={item.id}>
+                                    {item.variants && item.variants.length === 1 ? (
+                                        <button
+                                            onClick={() => onAddToOrder(item, item.variants[0])}
+                                            className="font-medium text-indigo-600 dark:text-indigo-500 hover:underline"
+                                        >
+                                            Add
+                                        </button>
+                                    ) : item.variants && item.variants.length > 1 ? (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => setOpenDropdownId(openDropdownId === item.id ? null : item.id)}
+                                                className="inline-flex justify-center items-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-3 py-1 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-100 dark:focus:ring-offset-gray-800 focus:ring-indigo-500"
+                                                aria-haspopup="true"
+                                                aria-expanded={openDropdownId === item.id}
+                                            >
+                                                Add
+                                                <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                                </svg>
+                                            </button>
+                                            {openDropdownId === item.id && (
+                                                <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 focus:outline-none z-20" role="menu" aria-orientation="vertical">
+                                                    <div className="py-1">
+                                                        {item.variants.map(variant => (
+                                                            <button
+                                                                key={variant.name}
+                                                                onClick={() => {
+                                                                    onAddToOrder(item, variant);
+                                                                    setOpenDropdownId(null);
+                                                                }}
+                                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                                                                role="menuitem"
+                                                            >
+                                                                {variant.name} ({currency.symbol}{(variant.price * currency.rate).toFixed(2)})
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <span className="font-medium text-gray-400 cursor-not-allowed">
+                                            Add
+                                        </span>
+                                    )}
+                                </div>
+                                <button onClick={() => onEditItem(item)} className="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</button>
+                                <button onClick={() => onDeleteItem(item.id)} className="font-medium text-red-600 dark:text-red-500 hover:underline">Delete</button>
+                            </div>
                           </td>
                       </tr>
                   ))}
