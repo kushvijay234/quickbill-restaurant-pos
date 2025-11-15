@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { IOrder, PaymentMethod } from '../types';
 import { ORDERS_PER_PAGE } from '../constants';
@@ -187,9 +188,9 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">Order History</h2>
             
             {/* Filter Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-                    <div className="flex items-center space-x-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div className="flex flex-col md:flex-row md:flex-wrap items-stretch md:items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <label className="flex items-center space-x-2 cursor-pointer">
                             <input type="radio" name="filterType" value="today" checked={filterType === 'today'} onChange={() => setFilterType('today')} className="form-radio h-4 w-4 text-indigo-600 focus:ring-indigo-500"/>
                             <span className="text-gray-700 dark:text-gray-200">Today</span>
@@ -203,15 +204,15 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
                             <span className="text-gray-700 dark:text-gray-200">Date Range</span>
                         </label>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         {filterType === 'single' && (
-                            <input type="date" value={singleDate} onChange={e => setSingleDate(e.target.value)} className="form-input px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"/>
+                            <input type="date" value={singleDate} onChange={e => setSingleDate(e.target.value)} className="form-input w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"/>
                         )}
                         {filterType === 'range' && (
                             <>
-                            <input type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({...prev, start: e.target.value}))} className="form-input px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"/>
-                            <span className="text-gray-500 dark:text-gray-400">to</span>
-                            <input type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({...prev, end: e.target.value}))} className="form-input px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"/>
+                            <input type="date" value={dateRange.start} onChange={e => setDateRange(prev => ({...prev, start: e.target.value}))} className="form-input w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"/>
+                            <span className="text-gray-500 dark:text-gray-400 text-center">to</span>
+                            <input type="date" value={dateRange.end} onChange={e => setDateRange(prev => ({...prev, end: e.target.value}))} className="form-input w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"/>
                             </>
                         )}
                     </div>
@@ -219,7 +220,7 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
                         <select
                             value={paymentFilter}
                             onChange={(e) => setPaymentFilter(e.target.value as 'all' | PaymentMethod)}
-                            className="form-select px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
+                            className="form-select w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
                         >
                             <option value="all">All Payments</option>
                             <option value="cash">Cash</option>
@@ -238,7 +239,7 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
                             placeholder="Search Customer, ID, Amount..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="form-input w-full sm:w-64 pl-10 pr-10 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
+                            className="form-input w-full pl-10 pr-10 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
                         />
                         {searchQuery && (
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -258,7 +259,7 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
                 </div>
                  <button
                     onClick={handleExportCSV}
-                    className="flex items-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 text-sm font-medium"
+                    className="flex items-center justify-center w-full lg:w-auto bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 text-sm font-medium"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
