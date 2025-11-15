@@ -7,10 +7,8 @@ interface IAuthContext {
   isAuthenticated: boolean;
   user: IUser | null;
   token: string | null;
-  profile: IProfile | null;
   login: (token: string, user: IUser) => void;
   logout: () => void;
-  setProfile: (profile: IProfile) => void;
 }
 
 const AuthContext = createContext<IAuthContext | null>(null);
@@ -18,13 +16,11 @@ const AuthContext = createContext<IAuthContext | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<IUser | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-  const [profile, setProfile] = useState<IProfile | null>(null);
 
   const logout = useCallback(() => {
     logger.info('User logging out', { username: user?.username });
     setUser(null);
     setToken(null);
-    setProfile(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }, [user?.username]);
@@ -71,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated: !!token, user, token, login, logout, profile, setProfile }}>
+    <AuthContext.Provider value={{ isAuthenticated: !!token, user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

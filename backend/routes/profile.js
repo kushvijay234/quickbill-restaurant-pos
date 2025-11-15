@@ -13,12 +13,8 @@ router.get('/', async (req, res) => {
     try {
         let profile = await Profile.findOne({ userId: req.user.id });
         if (!profile) {
-            profile = await Profile.create({
-                userId: req.user.id,
-                restaurantName: 'My Restaurant',
-                address: '123 Main Street',
-                phone: '555-1234'
-            });
+            // Let the Mongoose schema handle the default values on creation
+            profile = await Profile.create({ userId: req.user.id });
         }
         res.json(profile);
     } catch (err) {
@@ -30,8 +26,8 @@ router.get('/', async (req, res) => {
 // @desc    Update restaurant profile for the logged-in user (upsert)
 // @route   PUT /api/profile
 router.put('/', authorize('admin', 'staff'), async (req, res) => {
-    const { restaurantName, address, phone } = req.body;
-    const profileFields = { restaurantName, address, phone, userId: req.user.id };
+    const { restaurantName, address, phone, logoUrl } = req.body;
+    const profileFields = { restaurantName, address, phone, logoUrl, userId: req.user.id };
 
     try {
         let profile = await Profile.findOneAndUpdate(

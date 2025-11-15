@@ -25,8 +25,9 @@ type Theme = 'light' | 'dark';
 type ActiveView = 'menu' | 'pastOrders' | 'admin';
 
 const App: React.FC = () => {
-  const { isAuthenticated, user, logout, profile, setProfile: setAuthProfile } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
   
+  const [profile, setProfile] = useState<IProfile | null>(null);
   const [orderItems, setOrderItems] = useState<IOrderItem[]>([]);
   const [customer, setCustomer] = useState<ICustomer>({ name: '', mobile: '' });
   const [currency, setCurrency] = useState<ICurrency>(CURRENCIES[0]);
@@ -62,14 +63,24 @@ const App: React.FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
   
-  // Set initial view based on user role
+  // Set initial view based on user role, and clear state on logout
   useEffect(() => {
-    if (user?.role === 'admin') {
-      setActiveView('admin');
-    } else if (user?.role === 'staff') {
-      setActiveView('menu');
+    if (isAuthenticated && user) {
+       if (user.role === 'admin') {
+         setActiveView('admin');
+       } else {
+         setActiveView('menu');
+       }
+    } else {
+        // Clear all session state on logout
+        setProfile(null);
+        setOrderItems([]);
+        setCustomer({ name: '', mobile: '' });
+        setPastOrderCount(0);
+        setCompletedOrder(null);
+        setActiveView('menu');
     }
-  }, [user]);
+  }, [isAuthenticated, user]);
 
   // Effect to automatically dismiss notifications after a delay
   useEffect(() => {
@@ -91,13 +102,11 @@ const App: React.FC = () => {
   const fetchInitialData = useCallback(async () => {
     if (!isAuthenticated) return;
     try {
-        // Only fetch data that is needed globally, like profile and order count.
-        // Menu items and past orders will be fetched by their respective components.
         const [profileData, orderCountData] = await Promise.all([
             api.get('/profile'),
             api.get('/orders/count')
         ]);
-        setAuthProfile(profileData);
+        setProfile(profileData);
         setPastOrderCount(orderCountData.count);
     } catch (error) {
         let message = 'Could not load initial data. Please try again later.';
@@ -107,7 +116,7 @@ const App: React.FC = () => {
         logger.error('Failed to fetch initial data', { error: (error as Error).message });
         showNotification({ message, type: 'error' });
     }
-}, [isAuthenticated, setAuthProfile]);
+}, [isAuthenticated]);
 
 useEffect(() => {
     fetchInitialData();
@@ -170,10 +179,6 @@ useEffect(() => {
   const total = subtotal + tax;
 
   const handleProceedToPayment = () => {
-    if (!customer.name || !customer.mobile) {
-        showNotification({ message: 'Please enter customer name and mobile number.', type: 'error' });
-        return;
-    }
     if (orderItems.length === 0) {
         showNotification({ message: 'Cannot save an empty order.', type: 'error' });
         return;
@@ -184,8 +189,13 @@ useEffect(() => {
   const handleSaveOrder = async (paymentMethod: PaymentMethod) => {
     setShowPaymentModal(false);
     
+    const customerForOrder = {
+      ...customer,
+      name: customer.name.trim() === '' ? 'Cash' : customer.name,
+    };
+
     const newOrderPayload: Omit<IOrder, 'id' | 'date'> = {
-        customer,
+        customer: customerForOrder,
         items: orderItems,
         subtotal,
         tax,
@@ -201,6 +211,7 @@ useEffect(() => {
       setShowBillModal(true);
       logger.info('Order saved successfully', { orderId: savedOrder.id, total: savedOrder.total, paymentMethod });
       showNotification({ message: 'Order saved successfully! SMS notification sent.', type: 'success' });
+      
     } catch(error) {
       showNotification({ message: 'Could not save the order.', type: 'error' });
     }
@@ -270,7 +281,7 @@ useEffect(() => {
   const handleSaveProfile = async (updatedProfile: Omit<IProfile, 'id'>) => {
     try {
         const savedProfile = await api.put('/profile', updatedProfile);
-        setAuthProfile(savedProfile);
+        setProfile(savedProfile);
         setShowProfileModal(false);
         logger.info('Profile updated successfully');
         showNotification({ message: 'Profile updated successfully!', type: 'success' });
