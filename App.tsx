@@ -41,7 +41,7 @@ const App: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [pastOrderCount, setPastOrderCount] = useState(0);
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
-  const [isTaxIncluded, setIsTaxIncluded] = useState(true);
+  const [isTaxIncluded, setIsTaxIncluded] = useState(false);
 
 
   const [theme, setTheme] = useState<Theme>(() => {
