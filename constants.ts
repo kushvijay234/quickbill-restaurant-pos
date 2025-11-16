@@ -8,6 +8,6 @@ export const CURRENCIES: ICurrency[] = [
   { code: 'GBP', symbol: '£', rate: 0.0095 },
 ];
 
-export const TAX_RATE = 0.05; // 18% Tax Rate
+export const DEFAULT_TAX_RATE = 0.05; // 5% Tax Rate
 
 export const ORDERS_PER_PAGE = 20;

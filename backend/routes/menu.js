@@ -1,4 +1,5 @@
 
+
 const express = require('express');
 const MenuItem = require('../models/menuItem');
 const { protect, authorize } = require('../middleware/auth');
@@ -23,10 +24,18 @@ router.get('/', async (req, res) => {
             // Case-insensitive search
             ...(search && { name: { $regex: search, $options: 'i' } })
         };
+        
+        const sortConfig = {};
+        if (sortBy === 'price') {
+            // Sort by the price of the first variant in the array
+            sortConfig['variants.0.price'] = sortOrder;
+        } else {
+            sortConfig[sortBy] = sortOrder;
+        }
 
         const total = await MenuItem.countDocuments(query);
         const menuItems = await MenuItem.find(query)
-            .sort({ [sortBy]: sortOrder })
+            .sort(sortConfig)
             .skip((page - 1) * limit)
             .limit(limit);
 
@@ -45,21 +54,25 @@ router.get('/', async (req, res) => {
 // @desc    Add a new menu item for the logged-in user
 // @route   POST /api/menu
 router.post('/', authorize('admin', 'staff'), async (req, res) => {
-    const { name, price, imageUrl } = req.body;
+    const { name, variants, imageUrl } = req.body;
     try {
-        const newItem = new MenuItem({ name, price, imageUrl, userId: req.user.id });
+        const newItem = new MenuItem({ name, variants, imageUrl, userId: req.user.id });
         const menuItem = await newItem.save();
         res.json(menuItem);
     } catch (err) {
         console.error(err.message);
+        // Handle validation errors from Mongoose
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ msg: Object.values(err.errors).map(val => val.message).join(', ') });
+        }
         res.status(500).send('Server Error');
     }
 });
 
-// @desc    Update a menu item's name and/or price
+// @desc    Update a menu item's name and/or price variants
 // @route   PUT /api/menu/:id
 router.put('/:id', authorize('admin', 'staff'), async (req, res) => {
-    const { name, price } = req.body;
+    const { name, variants } = req.body;
     try {
         let menuItem = await MenuItem.findOne({ _id: req.params.id, userId: req.user.id });
         if (!menuItem) {
@@ -69,14 +82,21 @@ router.put('/:id', authorize('admin', 'staff'), async (req, res) => {
         if (name !== undefined) {
             menuItem.name = name;
         }
-        if (price !== undefined) {
-            menuItem.price = price;
+        if (variants !== undefined) {
+            if (!Array.isArray(variants) || variants.length === 0) {
+                 return res.status(400).json({ msg: 'At least one price variant is required.' });
+            }
+            menuItem.variants = variants;
         }
 
         await menuItem.save();
         res.json(menuItem);
-    } catch (err) {
+    } catch (err)
+        {
         console.error(err.message);
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ msg: Object.values(err.errors).map(val => val.message).join(', ') });
+        }
         res.status(500).send('Server Error');
     }
 });

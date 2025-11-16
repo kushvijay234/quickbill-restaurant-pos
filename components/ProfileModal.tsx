@@ -11,6 +11,8 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
   const [restaurantName, setRestaurantName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
+  const [taxRate, setTaxRate] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -18,17 +20,27 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
       setRestaurantName(profile.restaurantName);
       setAddress(profile.address);
       setPhone(profile.phone);
+      setLogoUrl(profile.logoUrl || '');
+      setTaxRate(profile.taxRate !== undefined ? String(profile.taxRate * 100) : '');
     }
   }, [profile]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurantName || !address || !phone) {
-      setError('All fields are required.');
+      setError('Restaurant Name, Address, and Phone are required.');
       return;
     }
+
+    const taxRateNumber = parseFloat(taxRate);
+    if (taxRate && (isNaN(taxRateNumber) || taxRateNumber < 0 || taxRateNumber > 100)) {
+        setError('Please enter a valid tax rate between 0 and 100.');
+        return;
+    }
+
     setError('');
-    onSave({ restaurantName, address, phone });
+    const taxRateDecimal = taxRate ? taxRateNumber / 100 : undefined;
+    onSave({ restaurantName, address, phone, logoUrl, taxRate: taxRateDecimal });
   };
 
   return (
@@ -72,6 +84,31 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
               onChange={(e) => setPhone(e.target.value)}
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
             />
+          </div>
+           <div>
+            <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tax Rate (%)</label>
+            <input
+              type="number"
+              id="taxRate"
+              value={taxRate}
+              onChange={(e) => setTaxRate(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
+              placeholder="e.g., 18"
+            />
+          </div>
+          <div>
+            <label htmlFor="logoUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Logo Image URL</label>
+            <input
+              type="text"
+              id="logoUrl"
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
+              placeholder="https://example.com/logo.png"
+            />
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              Provide a direct link to your restaurant's logo. This will appear on customer bills.
+            </p>
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <div className="flex justify-end space-x-3 pt-4">

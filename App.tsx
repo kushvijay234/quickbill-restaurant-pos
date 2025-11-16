@@ -1,8 +1,7 @@
 
-
 import React, { useState, useCallback, useEffect } from 'react';
-import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser } from './types';
-import { CURRENCIES, TAX_RATE } from './constants';
+import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant } from './types';
+import { CURRENCIES, DEFAULT_TAX_RATE } from './constants';
 import Header from './components/Header';
 import MenuList from './components/MenuList';
 import OrderSummary from './components/OrderSummary';
@@ -42,6 +41,7 @@ const App: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [pastOrderCount, setPastOrderCount] = useState(0);
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
+  const [isTaxIncluded, setIsTaxIncluded] = useState(true);
 
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -137,27 +137,41 @@ useEffect(() => {
     }
   };
 
-  const addToOrder = (itemToAdd: IMenuItem) => {
+  const addToOrder = (itemToAdd: IMenuItem, selectedVariant: IMenuItemVariant) => {
+    if (!selectedVariant) {
+        logger.error('Attempted to add an item to order with a missing variant.', { item: itemToAdd });
+        showNotification({ message: `Cannot add "${itemToAdd.name}": variant not available.`, type: 'error' });
+        return;
+    }
+    
     setOrderItems(prevOrder => {
-      const existingItem = prevOrder.find(orderItem => orderItem.item.id === itemToAdd.id);
-      if (existingItem) {
-        return prevOrder.map(orderItem =>
-          orderItem.item.id === itemToAdd.id
-            ? { ...orderItem, quantity: orderItem.quantity + 1 }
-            : orderItem
-        );
+      const existingItemIndex = prevOrder.findIndex(
+        orderItem => orderItem.item.id === itemToAdd.id && orderItem.selectedVariant.name === selectedVariant.name
+      );
+
+      if (existingItemIndex > -1) {
+        const newOrder = [...prevOrder];
+        newOrder[existingItemIndex] = {
+          ...newOrder[existingItemIndex],
+          quantity: newOrder[existingItemIndex].quantity + 1,
+        };
+        return newOrder;
       }
-      return [...prevOrder, { item: itemToAdd, quantity: 1, priceAtOrder: itemToAdd.price }];
+      return [...prevOrder, { item: itemToAdd, quantity: 1, selectedVariant }];
     });
   };
 
-  const updateOrderQuantity = (itemId: string, newQuantity: number) => {
+  const updateOrderQuantity = (itemId: string, variantName: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      setOrderItems(prevOrder => prevOrder.filter(orderItem => orderItem.item.id !== itemId));
+      setOrderItems(prevOrder => prevOrder.filter(
+        orderItem => !(orderItem.item.id === itemId && orderItem.selectedVariant.name === variantName)
+      ));
     } else {
       setOrderItems(prevOrder =>
         prevOrder.map(orderItem =>
-          orderItem.item.id === itemId ? { ...orderItem, quantity: newQuantity } : orderItem
+          (orderItem.item.id === itemId && orderItem.selectedVariant.name === variantName)
+            ? { ...orderItem, quantity: newQuantity }
+            : orderItem
         )
       );
     }
@@ -170,12 +184,17 @@ useEffect(() => {
 
   const calculateSubtotal = useCallback(() => {
     return orderItems.reduce((total, orderItem) => {
-      return total + orderItem.priceAtOrder * orderItem.quantity;
+       if (!orderItem || !orderItem.selectedVariant) {
+          logger.error("Malformed order item found in calculation:", orderItem);
+          return total; // Skip this item to prevent crash
+      }
+      return total + orderItem.selectedVariant.price * orderItem.quantity;
     }, 0);
   }, [orderItems]);
 
   const subtotal = calculateSubtotal();
-  const tax = subtotal * TAX_RATE;
+  const taxRate = profile?.taxRate ?? DEFAULT_TAX_RATE;
+  const tax = isTaxIncluded ? subtotal * taxRate : 0;
   const total = subtotal + tax;
 
   const handleProceedToPayment = () => {
@@ -185,6 +204,10 @@ useEffect(() => {
     }
     setShowPaymentModal(true);
   };
+  
+  const handleToggleTax = () => {
+    setIsTaxIncluded(prev => !prev);
+  }
 
   const handleSaveOrder = async (paymentMethod: PaymentMethod) => {
     setShowPaymentModal(false);
@@ -235,7 +258,8 @@ useEffect(() => {
   
   const handleUpdateItem = async (updatedItem: IMenuItem) => {
     try {
-       const returnedItem = await api.put(`/menu/${updatedItem.id}`, { name: updatedItem.name, price: updatedItem.price });
+       const { id, name, variants } = updatedItem;
+       const returnedItem = await api.put(`/menu/${id}`, { name, variants });
        setMenuRefreshKey(prev => prev + 1); // Trigger refetch in MenuList
        setEditingMenuItem(null);
        logger.info('Menu item updated', { item: returnedItem });
@@ -336,6 +360,9 @@ useEffect(() => {
                     subtotal={subtotal}
                     tax={tax}
                     total={total}
+                    isTaxIncluded={isTaxIncluded}
+                    onToggleTax={handleToggleTax}
+                    taxRate={taxRate}
                 />
               </div>
             </div>

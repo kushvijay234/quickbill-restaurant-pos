@@ -1,18 +1,21 @@
+
 import React from 'react';
 import { IOrderItem, ICustomer, ICurrency } from '../types';
-import { TAX_RATE } from '../constants';
 
 interface OrderSummaryProps {
   orderItems: IOrderItem[];
   currency: ICurrency;
   customer: ICustomer;
   onCustomerChange: (customer: ICustomer) => void;
-  onQuantityChange: (itemId: string, newQuantity: number) => void;
+  onQuantityChange: (itemId: string, variantName: string, newQuantity: number) => void;
   onClearOrder: () => void;
   onProceedToPayment: () => void;
   subtotal: number;
   tax: number;
   total: number;
+  isTaxIncluded: boolean;
+  onToggleTax: () => void;
+  taxRate: number;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -26,6 +29,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   subtotal,
   tax,
   total,
+  isTaxIncluded,
+  onToggleTax,
+  taxRate,
 }) => {
   const convertedSubtotal = (subtotal * currency.rate).toFixed(2);
   const convertedTax = (tax * currency.rate).toFixed(2);
@@ -65,16 +71,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           <p className="text-gray-500 dark:text-gray-400 text-center py-8">Your order is empty.</p>
         ) : (
           <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {orderItems.map(({ item, quantity, priceAtOrder }) => (
-              <li key={item.id} className="py-3 flex items-center justify-between">
+            {orderItems.map(({ item, quantity, selectedVariant }) => (
+              <li key={`${item.id}-${selectedVariant.name}`} className="py-3 flex items-center justify-between">
                 <div>
-                  <p className="font-medium text-gray-800 dark:text-gray-100">{item.name}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{currency.symbol}{(priceAtOrder * currency.rate).toFixed(2)}</p>
+                  <p className="font-medium text-gray-800 dark:text-gray-100">{item.name} <span className="text-xs text-gray-500">({selectedVariant.name})</span></p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{currency.symbol}{(selectedVariant.price * currency.rate).toFixed(2)}</p>
                 </div>
                 <div className="flex items-center">
-                  <button onClick={() => onQuantityChange(item.id, quantity - 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">-</button>
+                  <button onClick={() => onQuantityChange(item.id, selectedVariant.name, quantity - 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">-</button>
                   <span className="w-8 text-center dark:text-gray-200">{quantity}</span>
-                  <button onClick={() => onQuantityChange(item.id, quantity + 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">+</button>
+                  <button onClick={() => onQuantityChange(item.id, selectedVariant.name, quantity + 1)} className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-bold w-6 h-6 rounded-full">+</button>
                 </div>
               </li>
             ))}
@@ -88,7 +94,26 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             <span>{currency.symbol}{convertedSubtotal}</span>
         </div>
         <div className="flex justify-between items-center text-md text-gray-600 dark:text-gray-400">
-            <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
+            <div className="flex items-center">
+                 <span className="mr-2">Tax ({(taxRate * 100).toFixed(0)}%)</span>
+                 <button
+                    type="button"
+                    onClick={onToggleTax}
+                    className={`${
+                        isTaxIncluded ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'
+                    } relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800`}
+                    role="switch"
+                    aria-checked={isTaxIncluded}
+                >
+                    <span className="sr-only">Include Tax</span>
+                    <span
+                        aria-hidden="true"
+                        className={`${
+                            isTaxIncluded ? 'translate-x-5' : 'translate-x-0'
+                        } pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}
+                    />
+                </button>
+            </div>
             <span>{currency.symbol}{convertedTax}</span>
         </div>
         <div className="flex justify-between items-center text-xl font-bold text-gray-800 dark:text-gray-100 mt-2">

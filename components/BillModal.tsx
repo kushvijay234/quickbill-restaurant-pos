@@ -18,6 +18,9 @@ const BillModal: React.FC<BillModalProps> = ({ order, profile, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
       <div id="bill-modal" className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 w-full max-w-sm m-4 transition-colors duration-300">
         <div className="text-center mb-6">
+          {profile?.logoUrl && (
+            <img src={profile.logoUrl} alt="Restaurant Logo" className="mx-auto h-20 w-auto object-contain mb-4" />
+          )}
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{profile?.restaurantName || 'QuickBill Restaurant'}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">{profile?.address || '123 Foodie Lane, Gourmet City'}</p>
           <p className="text-sm text-gray-500 dark:text-gray-400">Tax Invoice</p>
@@ -41,12 +44,12 @@ const BillModal: React.FC<BillModalProps> = ({ order, profile, onClose }) => {
                 </tr>
             </thead>
             <tbody className="text-gray-700 dark:text-gray-300">
-                {orderItems.map(({ item, quantity, priceAtOrder }) => (
-                    <tr key={item.id} className="border-b border-dashed border-gray-300 dark:border-gray-600">
-                        <td className="py-2">{item.name}</td>
+                {orderItems.map(({ item, quantity, selectedVariant }) => (
+                    <tr key={`${item.id}-${selectedVariant.name}`} className="border-b border-dashed border-gray-300 dark:border-gray-600">
+                        <td className="py-2">{item.name} <span className="text-xs">({selectedVariant.name})</span></td>
                         <td className="text-center">{quantity}</td>
-                        <td className="text-right">{(priceAtOrder * currency.rate).toFixed(2)}</td>
-                        <td className="text-right">{(priceAtOrder * quantity * currency.rate).toFixed(2)}</td>
+                        <td className="text-right">{(selectedVariant.price * currency.rate).toFixed(2)}</td>
+                        <td className="text-right">{(selectedVariant.price * quantity * currency.rate).toFixed(2)}</td>
                     </tr>
                 ))}
             </tbody>

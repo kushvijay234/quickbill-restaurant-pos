@@ -117,7 +117,8 @@ const AdminMenu: React.FC = () => {
                                     {item.name}
                                 </td>
                                 <td className="px-6 py-4">{(item.userId as any)?.username || 'N/A'}</td>
-                                <td className="px-6 py-4 text-right font-semibold">₹{item.price.toFixed(2)}</td>
+                                {/* FIX: Correctly display price from variants array */}
+                                <td className="px-6 py-4 text-right font-semibold">{item.variants.map(v => `₹${v.price.toFixed(2)} (${v.name})`).join(' / ')}</td>
                             </tr>
                         ))}
                     </tbody>
