@@ -61,7 +61,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             value={customer.mobile}
             onChange={(e) => onCustomerChange({ ...customer, mobile: e.target.value })}
             className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
-            placeholder="9876543210"
+            placeholder="+919876543210"
           />
         </div>
       </div>
