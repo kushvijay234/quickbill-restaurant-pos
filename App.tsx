@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant } from './types';
 import { CURRENCIES, TAX_RATE } from './constants';
@@ -40,6 +41,7 @@ const App: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [pastOrderCount, setPastOrderCount] = useState(0);
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
+  const [isTaxIncluded, setIsTaxIncluded] = useState(false);
 
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -191,7 +193,7 @@ useEffect(() => {
   }, [orderItems]);
 
   const subtotal = calculateSubtotal();
-  const tax = subtotal * TAX_RATE;
+  const tax = isTaxIncluded ? subtotal * TAX_RATE : 0;
   const total = subtotal + tax;
 
   const handleProceedToPayment = () => {
@@ -201,6 +203,10 @@ useEffect(() => {
     }
     setShowPaymentModal(true);
   };
+  
+  const handleToggleTax = () => {
+    setIsTaxIncluded(prev => !prev);
+  }
 
   const handleSaveOrder = async (paymentMethod: PaymentMethod) => {
     setShowPaymentModal(false);
@@ -353,6 +359,8 @@ useEffect(() => {
                     subtotal={subtotal}
                     tax={tax}
                     total={total}
+                    isTaxIncluded={isTaxIncluded}
+                    onToggleTax={handleToggleTax}
                 />
               </div>
             </div>

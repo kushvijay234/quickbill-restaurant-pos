@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { IOrderItem, ICustomer, ICurrency } from '../types';
 import { TAX_RATE } from '../constants';
@@ -13,6 +14,8 @@ interface OrderSummaryProps {
   subtotal: number;
   tax: number;
   total: number;
+  isTaxIncluded: boolean;
+  onToggleTax: () => void;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -26,6 +29,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   subtotal,
   tax,
   total,
+  isTaxIncluded,
+  onToggleTax,
 }) => {
   const convertedSubtotal = (subtotal * currency.rate).toFixed(2);
   const convertedTax = (tax * currency.rate).toFixed(2);
@@ -88,7 +93,26 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             <span>{currency.symbol}{convertedSubtotal}</span>
         </div>
         <div className="flex justify-between items-center text-md text-gray-600 dark:text-gray-400">
-            <span>Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
+            <div className="flex items-center">
+                 <span className="mr-2">Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
+                 <button
+                    type="button"
+                    onClick={onToggleTax}
+                    className={`${
+                        isTaxIncluded ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'
+                    } relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800`}
+                    role="switch"
+                    aria-checked={isTaxIncluded}
+                >
+                    <span className="sr-only">Include Tax</span>
+                    <span
+                        aria-hidden="true"
+                        className={`${
+                            isTaxIncluded ? 'translate-x-5' : 'translate-x-0'
+                        } pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200`}
+                    />
+                </button>
+            </div>
             <span>{currency.symbol}{convertedTax}</span>
         </div>
         <div className="flex justify-between items-center text-xl font-bold text-gray-800 dark:text-gray-100 mt-2">
