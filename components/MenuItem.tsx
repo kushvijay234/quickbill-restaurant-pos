@@ -33,15 +33,15 @@ const MenuItem: React.FC<MenuItemProps> = ({ item, currency, onAddToOrder, onEdi
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </button>
         </div>
-      <img src={item.imageUrl} alt={item.name} className="w-full h-40 object-cover" />
+      <img src={item.imageUrl} alt={item.name} className="w-full h-24 object-cover" />
       <div className="p-4 flex flex-col flex-grow justify-between">
         <div>
           <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-100 truncate">{item.name}</h3>
           <div className="mt-2 space-y-1">
             {item.variants.map(variant => (
-                <div key={variant.name} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 dark:text-gray-300">{variant.name}</span>
-                    <span className="font-bold text-gray-700 dark:text-gray-200">
+                <div key={variant.name} className="flex justify-between items-baseline text-sm gap-2">
+                    <span className="text-gray-600 dark:text-gray-300 truncate">{variant.name}</span>
+                    <span className="font-bold text-gray-700 dark:text-gray-200 whitespace-nowrap">
                         {currency.symbol}{(variant.price * currency.rate).toFixed(2)}
                     </span>
                 </div>
