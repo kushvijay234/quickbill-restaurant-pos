@@ -55,6 +55,7 @@ export interface IProfile {
   address: string;
   phone: string;
   logoUrl?: string;
+  taxRate?: number;
 }
 
 export type UserRole = 'admin' | 'staff';

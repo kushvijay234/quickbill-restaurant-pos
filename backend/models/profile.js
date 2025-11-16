@@ -16,6 +16,16 @@ const ProfileSchema = new mongoose.Schema({
         required: true,
         default: 'N/A'
     },
+    logoUrl: {
+        type: String,
+        default: ''
+    },
+    taxRate: {
+        type: Number,
+        default: 0.18,
+        min: 0,
+        max: 1
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

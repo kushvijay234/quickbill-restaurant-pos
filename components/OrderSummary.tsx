@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { IOrderItem, ICustomer, ICurrency } from '../types';
-import { TAX_RATE } from '../constants';
 
 interface OrderSummaryProps {
   orderItems: IOrderItem[];
@@ -16,6 +15,7 @@ interface OrderSummaryProps {
   total: number;
   isTaxIncluded: boolean;
   onToggleTax: () => void;
+  taxRate: number;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
@@ -31,6 +31,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   total,
   isTaxIncluded,
   onToggleTax,
+  taxRate,
 }) => {
   const convertedSubtotal = (subtotal * currency.rate).toFixed(2);
   const convertedTax = (tax * currency.rate).toFixed(2);
@@ -94,7 +95,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         </div>
         <div className="flex justify-between items-center text-md text-gray-600 dark:text-gray-400">
             <div className="flex items-center">
-                 <span className="mr-2">Tax ({(TAX_RATE * 100).toFixed(0)}%)</span>
+                 <span className="mr-2">Tax ({(taxRate * 100).toFixed(0)}%)</span>
                  <button
                     type="button"
                     onClick={onToggleTax}

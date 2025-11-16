@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant } from './types';
-import { CURRENCIES, TAX_RATE } from './constants';
+import { CURRENCIES, DEFAULT_TAX_RATE } from './constants';
 import Header from './components/Header';
 import MenuList from './components/MenuList';
 import OrderSummary from './components/OrderSummary';
@@ -41,7 +41,7 @@ const App: React.FC = () => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [pastOrderCount, setPastOrderCount] = useState(0);
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
-  const [isTaxIncluded, setIsTaxIncluded] = useState(false);
+  const [isTaxIncluded, setIsTaxIncluded] = useState(true);
 
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -193,7 +193,8 @@ useEffect(() => {
   }, [orderItems]);
 
   const subtotal = calculateSubtotal();
-  const tax = isTaxIncluded ? subtotal * TAX_RATE : 0;
+  const taxRate = profile?.taxRate ?? DEFAULT_TAX_RATE;
+  const tax = isTaxIncluded ? subtotal * taxRate : 0;
   const total = subtotal + tax;
 
   const handleProceedToPayment = () => {
@@ -361,6 +362,7 @@ useEffect(() => {
                     total={total}
                     isTaxIncluded={isTaxIncluded}
                     onToggleTax={handleToggleTax}
+                    taxRate={taxRate}
                 />
               </div>
             </div>
