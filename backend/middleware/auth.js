@@ -24,10 +24,25 @@ exports.protect = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id);
+
+    // If tenantModels is not resolved yet, attempt to resolve via token claim
+    if (!req.tenantModels && decoded.tenantSlug) {
+      try {
+        const { getTenantConnection } = require('../config/tenantManager');
+        const { models, tenant } = await getTenantConnection(decoded.tenantSlug);
+        req.tenantSlug = decoded.tenantSlug;
+        req.tenant = tenant;
+        req.tenantModels = models;
+      } catch (tErr) {
+        console.warn(`[Auth] Could not resolve tenant from token '${decoded.tenantSlug}':`, tErr.message);
+      }
+    }
+
+    const UserModel = (req.tenantModels && req.tenantModels.User) || User;
+    req.user = await UserModel.findById(decoded.id);
 
     if (!req.user) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'User not found in tenant database' });
     }
     
     next();

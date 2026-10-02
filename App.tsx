@@ -14,14 +14,15 @@ import EditItemModal from './components/EditItemModal';
 import ProfileModal from './components/ProfileModal';
 import PaymentModal from './components/PaymentModal';
 import Login from './components/Login';
-import AdminPanel from './components/AdminPanel';
+import SubscriptionModal from './components/saas/SubscriptionModal';
+import SubscriptionBanner from './components/saas/SubscriptionBanner';
 import { api } from './services/api';
 import { logger } from './services/logger';
 import { useAuth } from './context/AuthContext';
 
 
 type Theme = 'light' | 'dark';
-type ActiveView = 'menu' | 'pastOrders' | 'admin';
+type ActiveView = 'menu' | 'pastOrders';
 
 const App: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -42,6 +43,8 @@ const App: React.FC = () => {
   const [pastOrderCount, setPastOrderCount] = useState(0);
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
   const [isTaxIncluded, setIsTaxIncluded] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionRefreshKey, setSubscriptionRefreshKey] = useState(0);
 
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -63,14 +66,19 @@ const App: React.FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
   
-  // Set initial view based on user role, and clear state on logout
+  // Set initial view strictly to POS billing and check subscription after login
   useEffect(() => {
     if (isAuthenticated && user) {
-       if (user.role === 'admin') {
-         setActiveView('admin');
-       } else {
-         setActiveView('menu');
-       }
+       setActiveView('menu');
+
+       // Check if user has an active paid subscription; if not, show subscription options
+       api.get('/subscription/current')
+         .then((data) => {
+           if (data && data.tenant && data.tenant.status !== 'active') {
+             setShowSubscriptionModal(true);
+           }
+         })
+         .catch(() => {});
     } else {
         // Clear all session state on logout
         setProfile(null);
@@ -320,6 +328,10 @@ useEffect(() => {
 
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+      <SubscriptionBanner
+        onOpenPlans={() => setShowSubscriptionModal(true)}
+        refreshTrigger={subscriptionRefreshKey}
+      />
       <Header
         currency={currency}
         onCurrencyChange={handleCurrencyChange}
@@ -332,9 +344,14 @@ useEffect(() => {
         onOpenProfile={() => setShowProfileModal(true)}
         user={user}
         onLogout={logout}
+        onOpenPlans={() => setShowSubscriptionModal(true)}
       />
       <main className="container mx-auto p-4 lg:p-8">
-        {activeView === 'menu' ? (
+        {activeView === 'pastOrders' ? (
+           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
+            <PastOrders onViewOrder={handleViewPastOrder} />
+           </div>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <MenuList 
@@ -367,13 +384,7 @@ useEffect(() => {
               </div>
             </div>
           </div>
-        ) : activeView === 'pastOrders' ? (
-           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
-            <PastOrders onViewOrder={handleViewPastOrder} />
-           </div>
-        ) : (
-          <AdminPanel />
-        ) }
+        )}
       </main>
       {showAddItemModal && (
         <AddItemModal
@@ -420,6 +431,12 @@ useEffect(() => {
           profile={profile}
           onClose={() => setShowProfileModal(false)}
           onSave={handleSaveProfile}
+        />
+      )}
+      {showSubscriptionModal && (
+        <SubscriptionModal
+          onClose={() => setShowSubscriptionModal(false)}
+          onSuccess={() => setSubscriptionRefreshKey(prev => prev + 1)}
         />
       )}
     </div>

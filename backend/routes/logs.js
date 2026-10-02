@@ -1,6 +1,6 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
-const Log = require('../models/log');
+const DefaultLog = require('../models/log');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -13,18 +13,18 @@ const logLimiter = rateLimit({
     message: { success: false, message: 'Log rate limit exceeded' }
 });
 
-// @desc    Create a log entry
+const getLog = (req) => (req.tenantModels && req.tenantModels.Log) || DefaultLog;
+
+// @desc    Create a log entry in tenant database
 // @route   POST /api/logs
 router.post('/', protect, logLimiter, async (req, res) => {
     try {
         const { level, message, meta } = req.body;
 
-        // Basic validation
         if (!level || !message || typeof message !== 'string' || !['info', 'warn', 'error'].includes(level)) {
             return res.status(400).json({ success: false, message: 'Invalid log payload' });
         }
 
-        // Bound message and meta size
         const safeMessage = message.trim().substring(0, 500);
         let safeMeta = meta;
         if (meta && typeof meta === 'object') {
@@ -34,6 +34,7 @@ router.post('/', protect, logLimiter, async (req, res) => {
             }
         }
 
+        const Log = getLog(req);
         const newLog = new Log({ 
             level, 
             message: safeMessage, 

@@ -1,7 +1,7 @@
 const express = require('express');
-const Order = require('../models/order');
-const MenuItem = require('../models/menuItem');
-const Profile = require('../models/profile');
+const DefaultOrder = require('../models/order');
+const DefaultMenuItem = require('../models/menuItem');
+const DefaultProfile = require('../models/profile');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -12,22 +12,28 @@ const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 // All routes in this file are protected
 router.use(protect);
 
-// @desc    Get total order count for the logged-in user
+const getOrder = (req) => (req.tenantModels && req.tenantModels.Order) || DefaultOrder;
+const getMenuItem = (req) => (req.tenantModels && req.tenantModels.MenuItem) || DefaultMenuItem;
+const getProfile = (req) => (req.tenantModels && req.tenantModels.Profile) || DefaultProfile;
+
+// @desc    Get total order count for the restaurant
 // @route   GET /api/orders/count
 router.get('/count', async (req, res) => {
     try {
-        const count = await Order.countDocuments({ userId: req.user.id });
+        const Order = getOrder(req);
+        const count = await Order.countDocuments();
         res.json({ count });
     } catch (err) {
-        console.error(err.message);
+        console.error('[Orders Count Error]:', err.message);
         res.status(500).json({ message: 'Server Error' });
     }
 });
 
-// @desc    Get all orders for the logged-in user with server-side handling
+// @desc    Get all orders for the restaurant with server-side filtering & pagination
 // @route   GET /api/orders
 router.get('/', async (req, res) => {
     try {
+        const Order = getOrder(req);
         const page = Math.max(1, parseInt(req.query.page) || 1);
         const requestedLimit = parseInt(req.query.limit);
         const search = req.query.search || '';
@@ -36,7 +42,7 @@ router.get('/', async (req, res) => {
         const paymentFilter = req.query.paymentFilter;
         const filterType = req.query.filterType;
 
-        const query = { userId: req.user.id };
+        const query = {};
 
         // Payment filtering
         if (paymentFilter && paymentFilter !== 'all') {
@@ -65,7 +71,7 @@ router.get('/', async (req, res) => {
             query.date = { $gte: startDate, $lte: endDate };
         }
 
-        // Search filtering with escaped regex to prevent ReDoS
+        // Search filtering with escaped regex
         if (search && typeof search === 'string' && search.trim() !== '') {
             const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
             query.$or = [
@@ -92,12 +98,12 @@ router.get('/', async (req, res) => {
         res.json({
             data: orders,
             page,
-            totalPages: Math.ceil(total / limit),
+            totalPages: Math.ceil(total / limit) || 1,
             total,
         });
 
     } catch (err) {
-        console.error('Error fetching orders:', err.message);
+        console.error('[Orders GET Error]:', err.message);
         res.status(500).json({ message: 'Server Error' });
     }
 });
@@ -106,6 +112,10 @@ router.get('/', async (req, res) => {
 // @route   POST /api/orders
 router.post('/', async (req, res) => {
     try {
+        const Order = getOrder(req);
+        const MenuItem = getMenuItem(req);
+        const Profile = getProfile(req);
+
         const { customer, items, paymentMethod, isTaxIncluded } = req.body;
 
         if (!items || !Array.isArray(items) || items.length === 0) {
@@ -116,9 +126,9 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ message: 'Invalid payment method.' });
         }
 
-        // Extract item IDs and query authoritative menu items from database
+        // Extract item IDs and query authoritative menu items from tenant database
         const itemIds = items.map(oi => oi.item?.id).filter(Boolean);
-        const dbItems = await MenuItem.find({ _id: { $in: itemIds }, userId: req.user.id });
+        const dbItems = await MenuItem.find({ _id: { $in: itemIds } });
         const dbItemMap = new Map(dbItems.map(item => [item._id.toString(), item]));
 
         let calculatedSubtotal = 0;
@@ -135,7 +145,7 @@ router.post('/', async (req, res) => {
 
             const dbItem = dbItemMap.get(itemId);
             if (!dbItem) {
-                return res.status(400).json({ message: `Item "${orderItem.item?.name || itemId}" not found in your menu.` });
+                return res.status(400).json({ message: `Item "${orderItem.item?.name || itemId}" not found in your restaurant menu.` });
             }
 
             const dbVariant = dbItem.variants.find(v => v.name === variantName);
@@ -162,9 +172,9 @@ router.post('/', async (req, res) => {
 
         calculatedSubtotal = parseFloat(calculatedSubtotal.toFixed(2));
 
-        // Get restaurant tax rate from authoritative user profile
-        const userProfile = await Profile.findOne({ userId: req.user.id });
-        const taxRate = typeof userProfile?.taxRate === 'number' ? userProfile.taxRate : 0.18;
+        // Get restaurant tax rate and currency from authoritative tenant profile
+        const userProfile = await Profile.findOne();
+        const taxRate = typeof userProfile?.taxRate === 'number' ? userProfile.taxRate : 0.05;
 
         // Apply tax if requested or if client order included tax
         const taxApplied = Boolean(isTaxIncluded || (req.body.tax && req.body.tax > 0));
@@ -181,7 +191,6 @@ router.post('/', async (req, res) => {
                 : '',
         };
 
-        // Construct secure order document without mass assignment
         const newOrder = new Order({
             customer: customerData,
             items: verifiedItems,
@@ -201,7 +210,7 @@ router.post('/', async (req, res) => {
         const order = await newOrder.save();
         res.status(201).json(order);
     } catch (err) {
-        console.error('Error creating order:', err);
+        console.error('[Order Create Error]:', err);
         res.status(500).json({ message: 'Server error creating order.' });
     }
 });

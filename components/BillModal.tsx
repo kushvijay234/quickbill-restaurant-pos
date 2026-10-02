@@ -40,7 +40,7 @@ const BillModal: React.FC<BillModalProps> = ({ order, profile, onClose }) => {
       )
       .join("\n");
 
-    const billText = `*Invoice from ${profile?.restaurantName || "QuickBill"}*
+    const billText = `*Invoice from ${profile?.restaurantName || "RESTOBILL"}*
 
 Order ID: ${id}
 Date: ${new Date(date).toLocaleString()}
@@ -91,7 +91,7 @@ Thank you for your visit!
               />
             )}
             <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-              {profile?.restaurantName || "QuickBill Restaurant"}
+              {profile?.restaurantName || "RESTOBILL Restaurant"}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               {profile?.address || "123 Foodie Lane, Gourmet City"}
@@ -212,7 +212,8 @@ Thank you for your visit!
           </div>
 
           <div className="text-center mt-6 text-xs text-gray-500 dark:text-gray-400">
-            Thank you for your visit!
+            Thank you for dining with us!
+            <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">Powered by RESTOBILL — Bill. Serve. Grow.</div>
           </div>
         </div>
 

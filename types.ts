@@ -82,3 +82,48 @@ export interface IAdminStats {
     totalRevenue: number;
     recentOrders: IOrder[];
 }
+
+export interface ITenant {
+  slug: string;
+  name: string;
+  status: 'trialing' | 'active' | 'past_due' | 'suspended' | 'cancelled';
+  activePlan: 'starter' | 'pro' | 'enterprise';
+  trialEndsAt?: string;
+  settings?: {
+    currency?: string;
+    currencySymbol?: string;
+    taxRate?: number;
+    address?: string;
+  };
+}
+
+export interface ISubscriptionPlan {
+  planId: 'starter' | 'pro' | 'enterprise';
+  name: string;
+  description: string;
+  priceInr: number;
+  billingPeriod: 'monthly' | 'yearly';
+  features: {
+    maxStaff: number;
+    maxMenuItems: number;
+    maxOrdersPerMonth: number;
+    tableManagement: boolean;
+    analytics: boolean;
+    prioritySupport: boolean;
+    customBranding: boolean;
+  };
+}
+
+export interface ISubscriptionDetails {
+  tenant: ITenant;
+  subscription?: {
+    planId: string;
+    status: string;
+    billingCycle: string;
+    currentPeriodEnd: string;
+    amount: number;
+  };
+  plan?: ISubscriptionPlan;
+  daysRemaining: number;
+  razorpayKeyId?: string;
+}

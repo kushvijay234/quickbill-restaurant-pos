@@ -8,8 +8,51 @@ const API_BASE_URL = import.meta.env.PROD
   ? 'https://quickbill-restaurant-pos-1.onrender.com/api'
   : '/api';
 
+/**
+ * Resolves current tenant slug from URL query, localStorage, or subdomain
+ */
+export const getTenantSlug = (): string | null => {
+  if (typeof window === 'undefined') return null;
+
+  // 1. Check URL query (?tenant=cafe)
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryTenant = urlParams.get('tenant');
+  if (queryTenant) {
+    localStorage.setItem('tenantSlug', queryTenant.toLowerCase().trim());
+    return queryTenant.toLowerCase().trim();
+  }
+
+  // 2. Check localStorage
+  const storedTenant = localStorage.getItem('tenantSlug');
+  if (storedTenant) {
+    return storedTenant.toLowerCase().trim();
+  }
+
+  // 3. Subdomain extraction
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  if (parts.length > 2) {
+    const subdomain = parts[0].toLowerCase();
+    const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
+    if (!reserved.includes(subdomain)) {
+      return subdomain;
+    }
+  }
+
+  return null;
+};
+
+export const setTenantSlug = (slug: string) => {
+  if (slug) {
+    localStorage.setItem('tenantSlug', slug.toLowerCase().trim());
+  } else {
+    localStorage.removeItem('tenantSlug');
+  }
+};
+
 const request = async (endpoint: string, options: RequestInit = {}) => {
   const token = localStorage.getItem('token');
+  const tenantSlug = getTenantSlug();
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -18,6 +61,10 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  if (tenantSlug) {
+    headers['X-Tenant-ID'] = tenantSlug;
   }
 
   try {
@@ -36,7 +83,11 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: response.statusText }));
-      throw new Error(errorData.message || `An API error occurred: ${response.status}`);
+      const error = new Error(errorData.message || `An API error occurred: ${response.status}`) as any;
+      error.status = response.status;
+      error.code = errorData.code;
+      error.data = errorData;
+      throw error;
     }
 
     if (response.status === 204) {
@@ -52,7 +103,7 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
     
     logger.error(`API call failed: ${options.method || 'GET'} ${endpoint}`, { error: errorMessage });
 
-    throw new Error(errorMessage);
+    throw error;
   }
 };
 
