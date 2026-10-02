@@ -96,9 +96,6 @@ const Login: React.FC = () => {
             </button>
           </div>
         </form>
-         <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
-            Testing : test / test
-          </p>
       </div>
     </div>
   );

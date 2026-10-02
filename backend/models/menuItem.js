@@ -53,4 +53,7 @@ const MenuItemSchema = new mongoose.Schema({
     }
 });
 
+MenuItemSchema.index({ userId: 1, createdAt: -1 });
+MenuItemSchema.index({ userId: 1, name: 1 });
+
 module.exports = mongoose.model('MenuItem', MenuItemSchema);

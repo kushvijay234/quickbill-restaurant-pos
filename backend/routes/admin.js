@@ -57,8 +57,8 @@ router.get('/users', async (req, res) => {
 router.post('/users', async (req, res) => {
     const { username, password } = req.body;
     try {
-        if (!username || !password) {
-            return res.status(400).json({ message: 'Username and password are required' });
+        if (!username || !password || typeof username !== 'string' || typeof password !== 'string' || password.length < 6) {
+            return res.status(400).json({ message: 'Username and password (at least 6 characters) are required.' });
         }
         const userExists = await User.findOne({ username });
         if (userExists) {
@@ -86,8 +86,8 @@ router.post('/users', async (req, res) => {
 router.put('/users/:id/reset-password', async (req, res) => {
     const { password } = req.body;
     try {
-        if (!password) {
-            return res.status(400).json({ message: 'New password is required' });
+        if (!password || typeof password !== 'string' || password.length < 6) {
+            return res.status(400).json({ message: 'New password must be at least 6 characters.' });
         }
         const user = await User.findById(req.params.id);
         if (!user) {

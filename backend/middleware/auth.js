@@ -16,9 +16,12 @@ exports.protect = async (req, res, next) => {
     return res.status(401).json({ message: 'Not authorized to access this route' });
   }
 
-  try {
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    // Verify token strictly without fallback
+    if (!process.env.JWT_SECRET) {
+      console.error('FATAL: JWT_SECRET not configured');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decoded.id);
 
     if (!req.user) {

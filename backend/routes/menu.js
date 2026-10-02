@@ -6,6 +6,8 @@ const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
+const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
 // All routes in this file are protected
 router.use(protect);
 
@@ -13,16 +15,18 @@ router.use(protect);
 // @route   GET /api/menu
 router.get('/', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 12;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 12));
         const search = req.query.search || '';
         const sortBy = req.query.sortBy || 'createdAt';
         const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
         
         const query = { 
             userId: req.user.id,
-            // Case-insensitive search
-            ...(search && { name: { $regex: search, $options: 'i' } })
+            // Case-insensitive search with escaped regex
+            ...(search && typeof search === 'string' && search.trim() && { 
+                name: { $regex: escapeRegex(search.trim()), $options: 'i' } 
+            })
         };
         
         const sortConfig = {};

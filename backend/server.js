@@ -8,18 +8,45 @@ const User = require('./models/user');
 // Load env vars
 dotenv.config();
 
+// Ensure mandatory JWT_SECRET is configured
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === '') {
+    console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+    process.exit(1);
+}
+
 // Connect to database
 connectDB();
 
 const app = express();
 
-// Body parser
-app.use(express.json());
+// Security headers with helmet
+const helmet = require('helmet');
+app.use(helmet());
+
+// Rate limiter for general API routes
+const rateLimit = require('express-rate-limit');
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many requests, please try again later.' }
+});
+app.use('/api', apiLimiter);
+
+// Body parser with size limit to prevent memory exhaustion
+app.use(express.json({ limit: '1mb' }));
 
 // Enable CORS
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://quickbill-restaurant-pos.vercel.app",
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://quickbill-restaurant-pos.vercel.app"], // your React app URLs
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })

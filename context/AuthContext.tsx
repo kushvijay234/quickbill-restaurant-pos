@@ -48,22 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('user', JSON.stringify(newUser));
   };
   
-  // Set up response interceptor for 401 Unauthorized
-  useEffect(() => {
-    const originalRequest = (api as any).__request; // Assuming an internal method to intercept
-    
-    const handleUnauthorized = (error: any) => {
-        if (error.message.includes('401')) {
-            logout();
-        }
-        return Promise.reject(error);
-    };
-
-    // This is a conceptual way to intercept. The actual implementation depends on `api.ts` structure.
-    // For this implementation, we will add error handling in `api.ts` directly.
-    // This effect is a placeholder for a more complex interceptor pattern.
-
-  }, [logout]);
 
 
   return (
