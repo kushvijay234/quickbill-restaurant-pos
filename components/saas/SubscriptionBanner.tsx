@@ -44,7 +44,7 @@ const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ onOpenPlans, re
     }`}>
       <div className="flex items-center gap-2">
         <span className="font-bold">
-          {isPastDue ? '⚠️ Subscription Expired:' : '✨ Free Trial Active:'}
+          {isPastDue ? '⚠️ Subscription Expired:' : ' Free Trial Active:'}
         </span>
         <span>
           {isPastDue

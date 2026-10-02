@@ -169,7 +169,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
               disabled={isLoading}
               className="w-full py-3 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition duration-150 disabled:opacity-50 shadow-md shadow-indigo-500/20"
             >
-              {isLoading ? 'Creating Your Account...' : '✨ Create Restaurant & Start Free Trial'}
+              {isLoading ? 'Creating Your Account...' : 'Create Restaurant & Start Free Trial'}
             </button>
           </div>
           <p className="text-center text-xs text-gray-500 dark:text-gray-400">

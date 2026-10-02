@@ -16,6 +16,7 @@ import PaymentModal from './components/PaymentModal';
 import Login from './components/Login';
 import SubscriptionModal from './components/saas/SubscriptionModal';
 import SubscriptionBanner from './components/saas/SubscriptionBanner';
+import Footer from './components/Footer';
 import { api } from './services/api';
 import { logger } from './services/logger';
 import { useAuth } from './context/AuthContext';
@@ -327,7 +328,7 @@ useEffect(() => {
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300 flex flex-col">
       <SubscriptionBanner
         onOpenPlans={() => setShowSubscriptionModal(true)}
         refreshTrigger={subscriptionRefreshKey}
@@ -346,7 +347,7 @@ useEffect(() => {
         onLogout={logout}
         onOpenPlans={() => setShowSubscriptionModal(true)}
       />
-      <main className="container mx-auto p-4 lg:p-8">
+      <main className="container mx-auto p-4 lg:p-8 flex-1">
         {activeView === 'pastOrders' ? (
            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
             <PastOrders onViewOrder={handleViewPastOrder} />
@@ -386,6 +387,7 @@ useEffect(() => {
           </div>
         )}
       </main>
+      <Footer />
       {showAddItemModal && (
         <AddItemModal
           onClose={() => setShowAddItemModal(false)}
