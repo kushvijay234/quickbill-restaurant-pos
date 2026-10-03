@@ -6,7 +6,7 @@ import RestaurantRegister from './saas/RestaurantRegister';
 import Footer from './Footer';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,17 +16,19 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
-    if (!username || !password) {
-      setError('Please enter your username/email and password.');
-      setIsLoading(false);
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
+      setError('Please enter your email and password.');
       return;
     }
 
+    setIsLoading(true);
+
     try {
       const data = await api.post('/auth/login', { 
-        username, 
+        email: cleanEmail,
+        username: cleanEmail, // backwards compatibility for existing systems
         password
       });
 
@@ -36,12 +38,12 @@ const Login: React.FC = () => {
       }
 
       login(token, user);
-      logger.info('User logged in successfully', { username: user.username });
+      logger.info('User logged in successfully', { email: user.email || user.username });
       
     } catch (err: any) {
-      const errorMessage = err.message || 'Invalid username or password';
+      const errorMessage = err.message || 'Invalid email or password';
       setError(errorMessage);
-      logger.error('Login failed', { username, error: errorMessage });
+      logger.error('Login failed', { email: cleanEmail, error: errorMessage });
     } finally {
       setIsLoading(false);
     }
@@ -60,44 +62,64 @@ const Login: React.FC = () => {
               Bill. Serve. Grow.
             </p>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Sign in to start billing
+              Sign in to your restaurant workspace
             </p>
           </div>
 
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                Username or Email
+                Email Address
               </label>
-              <input
-                id="username"
-                type="text"
-                required
-                placeholder="Enter your username or email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="owner@restaurant.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
                 Password
               </label>
-              <input
-                id="password-input"
-                type="password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
+              <div className="relative">
+                <input
+                  id="password-input"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
             </div>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs">
-                {error}
+              <div 
+                role="alert" 
+                className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs sm:text-sm animate-fade-in"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="flex-1 font-medium leading-relaxed">
+                  {error}
+                </div>
               </div>
             )}
 

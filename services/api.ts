@@ -74,11 +74,22 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
     });
     
     if (response.status === 401) {
-        // Token is invalid or expired, clear session
+      const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/saas/register');
+
+      if (!isAuthEndpoint) {
+        // Token is invalid or expired for an authenticated request, clear session
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/'; 
-        throw new Error('401: Unauthorized. Please log in again.');
+        if (window.location.pathname !== '/' && !window.location.pathname.includes('login')) {
+          window.location.href = '/';
+        }
+      }
+      
+      const errorData = await response.json().catch(() => ({ message: 'Invalid email or password' }));
+      const error = new Error(errorData.message || 'Invalid email or password') as any;
+      error.status = 401;
+      error.data = errorData;
+      throw error;
     }
 
     if (!response.ok) {

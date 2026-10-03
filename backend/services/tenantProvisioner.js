@@ -122,6 +122,7 @@ async function provisionTenant({
   // Role is 'staff' so they only have access to bill & manage menu, without staff admin portal access
   const primaryUser = await models.User.create({
     username: cleanUsername,
+    email: ownerEmail.toLowerCase().trim(),
     password: ownerPassword,
     role: 'staff'
   });

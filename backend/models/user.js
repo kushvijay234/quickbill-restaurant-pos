@@ -8,6 +8,11 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Please add a username'],
     unique: true,
   },
+  email: {
+    type: String,
+    lowercase: true,
+    trim: true,
+  },
   role: {
     type: String,
     enum: ['admin', 'staff'],

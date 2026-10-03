@@ -137,7 +137,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Email Address (Your Login Username) *
+              Email Address (For Login) *
             </label>
             <input
               type="email"
