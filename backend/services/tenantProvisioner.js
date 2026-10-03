@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const { getMasterModels } = require('../config/masterDb');
 const { getTenantConnection } = require('../config/tenantManager');
 
@@ -143,7 +144,7 @@ async function provisionTenant({
     .replace(/[^a-z0-9]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 24);
+    .slice(0, 16);
 
   if (normalizedSlug.length < 3) {
     normalizedSlug = 'bistro-' + Math.floor(1000 + Math.random() * 9000);
@@ -152,10 +153,15 @@ async function provisionTenant({
   // Check uniqueness and auto-append digits on collision
   let existingTenant = await Tenant.findOne({ slug: normalizedSlug });
   if (existingTenant) {
-    normalizedSlug = `${normalizedSlug}-${Math.floor(100 + Math.random() * 900)}`;
+    normalizedSlug = `${normalizedSlug.slice(0, 12)}-${Math.floor(100 + Math.random() * 900)}`;
   }
 
-  const dbName = `quickbill_tenant_${normalizedSlug.replace(/-/g, '_')}`;
+  // MongoDB Atlas strictly enforces max 38-byte database name length
+  let dbName = `quickbill_t_${normalizedSlug.replace(/-/g, '_')}`.slice(0, 38);
+  const existingDb = await Tenant.findOne({ dbName });
+  if (existingDb) {
+    dbName = `qb_${normalizedSlug.replace(/-/g, '_')}_${Math.floor(10 + Math.random() * 90)}`.slice(0, 38);
+  }
 
   // 2. 14-day free trial on Starter plan
   const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
@@ -166,7 +172,9 @@ async function provisionTenant({
     .trim()
     .replace(/[^a-z0-9_]/g, '_');
 
-  // 4. Create Tenant entry in Master DB
+  // 4. Hash password for master tenant retention & create Tenant entry in Master DB
+  const passwordHash = await bcrypt.hash(ownerPassword, 10);
+
   const tenant = await Tenant.create({
     slug: normalizedSlug,
     name,
@@ -174,6 +182,7 @@ async function provisionTenant({
     ownerUsername: cleanUsername,
     ownerEmail: ownerEmail.toLowerCase().trim(),
     ownerPhone,
+    passwordHash,
     dbName,
     status: 'trialing',
     trialEndsAt,

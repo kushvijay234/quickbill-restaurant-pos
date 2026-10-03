@@ -61,15 +61,51 @@ router.post('/register', registerLimiter, async (req, res) => {
     return res.status(400).json({ message: 'Password must contain at least one special character (!@#$%^&* etc).' });
   }
 
+  const cleanEmail = ownerEmail.toLowerCase().trim();
+  const cleanPhone = (ownerPhone || '').trim();
+
   try {
+    const { Tenant } = getMasterModels();
+
+    // Check if user/tenant already registered with this email or phone number
+    const existingTenant = await Tenant.findOne({
+      $or: [
+        { ownerEmail: cleanEmail },
+        ...(cleanPhone ? [{ ownerPhone: cleanPhone }] : [])
+      ]
+    });
+
+    if (existingTenant) {
+      const isEmailMatch = existingTenant.ownerEmail === cleanEmail;
+      const fieldMatched = isEmailMatch ? 'email address' : 'mobile number';
+      const now = new Date();
+      const isTrialActive = existingTenant.status === 'trialing' && existingTenant.trialEndsAt && new Date(existingTenant.trialEndsAt) > now;
+
+      let message;
+      if (isTrialActive) {
+        message = `An account with this ${fieldMatched} already exists with an active free trial. Please log in to your restaurant portal.`;
+      } else if (existingTenant.status === 'active') {
+        message = `An account with this ${fieldMatched} already has an active subscription. Please log in to continue.`;
+      } else {
+        message = `An account with this ${fieldMatched} is already registered. Your free trial period has ended. Please log in to upgrade and restore your account.`;
+      }
+
+      return res.status(409).json({
+        code: 'ACCOUNT_EXISTS',
+        message,
+        existingEmail: existingTenant.ownerEmail,
+        status: existingTenant.status
+      });
+    }
+
     const result = await provisionTenant({
       name: restaurantName,
       slug: slug || undefined,
       ownerName: ownerName || restaurantName,
       ownerUsername,
-      ownerEmail,
+      ownerEmail: cleanEmail,
       ownerPassword,
-      ownerPhone,
+      ownerPhone: cleanPhone,
       currency: currency || 'INR',
       currencySymbol: currencySymbol || '₹'
     });

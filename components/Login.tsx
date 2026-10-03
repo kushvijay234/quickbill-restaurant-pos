@@ -150,7 +150,15 @@ const Login: React.FC = () => {
       <Footer />
 
       {showRegisterModal && (
-        <RestaurantRegister onClose={() => setShowRegisterModal(false)} />
+        <RestaurantRegister 
+          onClose={() => setShowRegisterModal(false)} 
+          onSwitchToLogin={(existingEmail) => {
+            if (existingEmail) {
+              setEmail(existingEmail);
+            }
+            setShowRegisterModal(false);
+          }}
+        />
       )}
     </div>
   );

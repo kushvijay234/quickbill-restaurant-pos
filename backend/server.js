@@ -28,6 +28,12 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === '') {
 (async () => {
     try {
         await connectMasterDB();
+        // Run automated inactive trial data pruning on startup and every 24 hours
+        const { cleanExpiredTrialData } = require('./services/trialCleanupService');
+        cleanExpiredTrialData().catch((err) => console.warn('[Trial Cleanup Startup Note]:', err.message));
+        setInterval(() => {
+            cleanExpiredTrialData().catch((err) => console.warn('[Trial Cleanup Cron Error]:', err.message));
+        }, 24 * 60 * 60 * 1000);
     } catch (err) {
         console.error('CRITICAL: Failed to connect to Master Database:', err.message);
     }

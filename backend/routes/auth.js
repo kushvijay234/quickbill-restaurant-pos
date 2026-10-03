@@ -37,13 +37,19 @@ router.post('/login', loginLimiter, resolveTenant({ optional: true }), async (re
             { ownerUsername: inputEmail },
             { slug: inputEmail }
           ]
-        });
+        }).select('+passwordHash');
 
         if (matchedTenant) {
-          const { models, tenant } = await getTenantConnection(matchedTenant.slug);
-          req.tenantSlug = matchedTenant.slug;
-          req.tenant = tenant;
-          req.tenantModels = models;
+          try {
+            const { models, tenant } = await getTenantConnection(matchedTenant.slug);
+            req.tenantSlug = matchedTenant.slug;
+            req.tenant = tenant;
+            req.tenantModels = models;
+          } catch (connErr) {
+            req.tenantSlug = matchedTenant.slug;
+            req.tenant = matchedTenant;
+            req.tenantModels = null;
+          }
         }
       } catch (mErr) {
         console.warn('[Auth Login] Master DB tenant lookup warning:', mErr.message);
@@ -53,27 +59,52 @@ router.post('/login', loginLimiter, resolveTenant({ optional: true }), async (re
     const UserModel = (req.tenantModels && req.tenantModels.User) || DefaultUser;
     
     // Find user in resolved workspace database
-    const user = await UserModel.findOne({
-      $or: [
-        { email: inputEmail },
-        { username: inputEmail },
-        ...(req.tenant?.ownerEmail ? [{ email: req.tenant.ownerEmail.toLowerCase().trim() }] : []),
-        ...(req.tenant?.ownerUsername ? [{ username: req.tenant.ownerUsername }] : [])
-      ]
-    }).select('+password');
+    let user = null;
+    let isMatch = false;
 
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+    if (UserModel) {
+      user = await UserModel.findOne({
+        $or: [
+          { email: inputEmail },
+          { username: inputEmail },
+          ...(req.tenant?.ownerEmail ? [{ email: req.tenant.ownerEmail.toLowerCase().trim() }] : []),
+          ...(req.tenant?.ownerUsername ? [{ username: req.tenant.ownerUsername }] : [])
+        ]
+      }).select('+password');
     }
 
-    const isMatch = await user.matchPassword(password);
+    if (user) {
+      isMatch = await user.matchPassword(password);
+    } else if (req.tenant && req.tenant.passwordHash) {
+      const bcrypt = require('bcryptjs');
+      isMatch = await bcrypt.compare(password, req.tenant.passwordHash);
+    }
+
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const token = user.getSignedJwtToken(req.tenantSlug);
-    const userResponse = user.toObject();
-    delete userResponse.password;
+    let token;
+    let userResponse;
+
+    if (user) {
+      token = user.getSignedJwtToken(req.tenantSlug);
+      userResponse = user.toObject();
+      delete userResponse.password;
+    } else {
+      const jwt = require('jsonwebtoken');
+      token = jwt.sign(
+        { id: req.tenant._id, tenantSlug: req.tenant.slug },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRE || '1d' }
+      );
+      userResponse = {
+        id: req.tenant._id,
+        username: req.tenant.ownerUsername || req.tenant.ownerEmail,
+        email: req.tenant.ownerEmail,
+        role: 'staff'
+      };
+    }
 
     res.status(200).json({
       token,

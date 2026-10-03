@@ -33,6 +33,7 @@ const TenantSchema = new mongoose.Schema({
     required: [true, 'Owner email is required'],
     lowercase: true,
     trim: true,
+    index: true,
     match: [
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/,
       'Please enter a valid email'
@@ -41,12 +42,17 @@ const TenantSchema = new mongoose.Schema({
   ownerPhone: {
     type: String,
     default: '',
+    index: true,
     validate: {
       validator: function(v) {
         return !v || /^\d{10}$/.test(v);
       },
       message: 'Mobile number must be exactly 10 digits'
     }
+  },
+  passwordHash: {
+    type: String,
+    select: false
   },
   dbName: {
     type: String,
@@ -60,13 +66,22 @@ const TenantSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['trialing', 'active', 'past_due', 'suspended', 'cancelled'],
+    enum: ['trialing', 'active', 'past_due', 'suspended', 'cancelled', 'expired'],
     default: 'trialing',
     index: true
   },
   trialEndsAt: {
     type: Date,
     default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days trial
+  },
+  dataPruned: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  dataPrunedAt: {
+    type: Date,
+    default: null
   },
   activePlan: {
     type: String,

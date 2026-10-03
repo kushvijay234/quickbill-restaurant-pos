@@ -30,12 +30,15 @@ export const getTenantSlug = (): string | null => {
 
   // 3. Subdomain extraction
   const host = window.location.hostname;
-  const parts = host.split('.');
-  if (parts.length > 2) {
-    const subdomain = parts[0].toLowerCase();
-    const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
-    if (!reserved.includes(subdomain)) {
-      return subdomain;
+  const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(host);
+  if (!isIp) {
+    const parts = host.split('.');
+    if (parts.length > 2) {
+      const subdomain = parts[0].toLowerCase();
+      const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
+      if (!reserved.includes(subdomain)) {
+        return subdomain;
+      }
     }
   }
 

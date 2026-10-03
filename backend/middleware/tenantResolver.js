@@ -24,13 +24,16 @@ function extractTenantSlug(req) {
   // 3. Subdomain extraction
   const host = req.headers.host || req.hostname || '';
   const hostWithoutPort = host.split(':')[0];
-  const parts = hostWithoutPort.split('.');
-  if (parts.length > 2) {
-    const subdomain = parts[0].toLowerCase();
-    // Exclude reserved platform subdomains
-    const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
-    if (!reserved.includes(subdomain)) {
-      return subdomain;
+  const isIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostWithoutPort);
+  if (!isIp) {
+    const parts = hostWithoutPort.split('.');
+    if (parts.length > 2) {
+      const subdomain = parts[0].toLowerCase();
+      // Exclude reserved platform subdomains
+      const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
+      if (!reserved.includes(subdomain)) {
+        return subdomain;
+      }
     }
   }
 

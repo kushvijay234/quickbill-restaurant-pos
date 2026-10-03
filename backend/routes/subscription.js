@@ -198,7 +198,8 @@ router.post('/verify-payment', resolveTenant(), protect, async (req, res) => {
     // Update Tenant active plan & status
     await Tenant.findByIdAndUpdate(req.tenant._id, {
       status: 'active',
-      activePlan: plan.planId
+      activePlan: plan.planId,
+      dataPruned: false
     });
 
     res.json({

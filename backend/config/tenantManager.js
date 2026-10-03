@@ -55,7 +55,7 @@ async function getTenantConnection(tenantSlug) {
     throw new Error('MONGO_URI is not defined in environment variables');
   }
 
-  const tenantDbName = tenant.dbName || `quickbill_tenant_${normalizedSlug.replace(/[^a-z0-9_]/g, '_')}`;
+  const tenantDbName = tenant.dbName || `quickbill_t_${normalizedSlug.replace(/[^a-z0-9_]/g, '_')}`.slice(0, 38);
   const tenantDbUri = buildDbUri(baseUri, tenantDbName);
 
   // 4. Create isolated Mongoose connection
