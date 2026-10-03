@@ -13,11 +13,13 @@ const TenantSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Restaurant name is required'],
+    maxlength: [69, 'Restaurant name cannot exceed 69 characters'],
     trim: true
   },
   ownerName: {
     type: String,
     required: [true, 'Owner name is required'],
+    maxlength: [30, 'Owner name cannot exceed 30 characters'],
     trim: true
   },
   ownerUsername: {
@@ -38,7 +40,13 @@ const TenantSchema = new mongoose.Schema({
   },
   ownerPhone: {
     type: String,
-    default: ''
+    default: '',
+    validate: {
+      validator: function(v) {
+        return !v || /^\d{10}$/.test(v);
+      },
+      message: 'Mobile number must be exactly 10 digits'
+    }
   },
   dbName: {
     type: String,

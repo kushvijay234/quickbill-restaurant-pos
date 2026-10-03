@@ -14,21 +14,64 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
   const [ownerEmail, setOwnerEmail] = useState('');
   const [ownerPhone, setOwnerPhone] = useState('');
   const [ownerPassword, setOwnerPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Password rule tests
+  const hasMinLength = ownerPassword.length >= 8;
+  const hasUppercase = /[A-Z]/.test(ownerPassword);
+  const hasNumber = /[0-9]/.test(ownerPassword);
+  const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(ownerPassword);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!restaurantName || !ownerEmail || !ownerPassword) {
+    const cleanRestName = restaurantName.trim();
+    const cleanOwnerName = ownerName.trim();
+    const cleanEmail = ownerEmail.trim();
+    const cleanPhone = ownerPhone.trim();
+
+    if (!cleanRestName || !cleanEmail || !ownerPassword) {
       setError('Please provide restaurant name, email, and password.');
       return;
     }
 
-    if (ownerPassword.length < 6) {
-      setError('Password must be at least 6 characters.');
+    // 1. Restaurant Name: not above 69 characters
+    if (cleanRestName.length > 69) {
+      setError('Restaurant name cannot exceed 69 characters.');
+      return;
+    }
+
+    // 2. Owner Name: max 30 characters
+    if (cleanOwnerName.length > 30) {
+      setError('Owner name cannot exceed 30 characters.');
+      return;
+    }
+
+    // 3. Mobile Number: only 10 digits
+    if (cleanPhone && cleanPhone.length !== 10) {
+      setError('Mobile number must be exactly 10 digits.');
+      return;
+    }
+
+    // 4. Password: min 8 characters, at least 1 uppercase, 1 special character, 1 number
+    if (!hasMinLength) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!hasUppercase) {
+      setError('Password must contain at least one uppercase letter (A-Z).');
+      return;
+    }
+    if (!hasNumber) {
+      setError('Password must contain at least one number (0-9).');
+      return;
+    }
+    if (!hasSpecialChar) {
+      setError('Password must contain at least one special character (!@#$%^&* etc).');
       return;
     }
 
@@ -36,10 +79,10 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
 
     try {
       const data = await api.post('/saas/register', {
-        restaurantName,
-        ownerName: ownerName || restaurantName,
-        ownerEmail,
-        ownerPhone,
+        restaurantName: cleanRestName,
+        ownerName: cleanOwnerName || cleanRestName,
+        ownerEmail: cleanEmail,
+        ownerPhone: cleanPhone,
         ownerPassword
       });
 
@@ -88,50 +131,92 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
         </div>
 
         {error && (
-          <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm">
-            {error}
+          <div 
+            role="alert" 
+            className="mt-4 flex items-start gap-2.5 p-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs sm:text-sm animate-fade-in"
+          >
+            <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <div className="flex-1 font-medium leading-relaxed">
+              {error}
+            </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Restaurant Name *
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Restaurant Name *
+              </label>
+              <span className={`text-[11px] ${restaurantName.length >= 69 ? 'text-amber-500 font-bold' : 'text-gray-400'}`}>
+                {restaurantName.length}/69
+              </span>
+            </div>
             <input
               type="text"
               required
+              maxLength={69}
               placeholder="e.g. Royal Taste Cafe"
               value={restaurantName}
-              onChange={(e) => setRestaurantName(e.target.value)}
+              onChange={(e) => {
+                setRestaurantName(e.target.value.slice(0, 69));
+                if (error) setError('');
+              }}
               className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                Owner / Manager Name
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  Owner / Manager Name
+                </label>
+                <span className={`text-[11px] ${ownerName.length >= 30 ? 'text-amber-500 font-bold' : 'text-gray-400'}`}>
+                  {ownerName.length}/30
+                </span>
+              </div>
               <input
                 type="text"
+                maxLength={30}
                 placeholder="e.g. Chef Vikram"
                 value={ownerName}
-                onChange={(e) => setOwnerName(e.target.value)}
+                onChange={(e) => {
+                  setOwnerName(e.target.value.slice(0, 30));
+                  if (error) setError('');
+                }}
                 className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                placeholder="e.g. 9876543210"
-                value={ownerPhone}
-                onChange={(e) => setOwnerPhone(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  Mobile Number
+                </label>
+                <span className={`text-[11px] ${ownerPhone.length === 10 ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-gray-400'}`}>
+                  {ownerPhone.length}/10 digits
+                </span>
+              </div>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-xs font-medium text-gray-400 select-none">
+                  🇮🇳 +91
+                </span>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="9876543210"
+                  value={ownerPhone}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setOwnerPhone(digits);
+                    if (error) setError('');
+                  }}
+                  className="w-full pl-16 pr-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 
@@ -142,25 +227,71 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
             <input
               type="email"
               required
+              autoComplete="email"
               placeholder="owner@restaurant.com"
               value={ownerEmail}
-              onChange={(e) => setOwnerEmail(e.target.value)}
+              onChange={(e) => {
+                setOwnerEmail(e.target.value);
+                if (error) setError('');
+              }}
               className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
-              Password (min. 6 characters) *
+              Password *
             </label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={ownerPassword}
-              onChange={(e) => setOwnerPassword(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder="••••••••"
+                value={ownerPassword}
+                onChange={(e) => {
+                  setOwnerPassword(e.target.value);
+                  if (error) setError('');
+                }}
+                className="w-full px-3.5 py-2.5 pr-10 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Live Password Strength Requirements Checklist */}
+            <div className="grid grid-cols-2 gap-1.5 mt-2 p-2.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 text-[11px]">
+              <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span>{hasMinLength ? '✓' : '○'}</span>
+                <span>At least 8 characters</span>
+              </div>
+              <div className={`flex items-center gap-1.5 ${hasUppercase ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span>{hasUppercase ? '✓' : '○'}</span>
+                <span>1 Uppercase (A-Z)</span>
+              </div>
+              <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span>{hasNumber ? '✓' : '○'}</span>
+                <span>1 Number (0-9)</span>
+              </div>
+              <div className={`flex items-center gap-1.5 ${hasSpecialChar ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span>{hasSpecialChar ? '✓' : '○'}</span>
+                <span>1 Special character</span>
+              </div>
+            </div>
           </div>
 
           <div className="pt-2">

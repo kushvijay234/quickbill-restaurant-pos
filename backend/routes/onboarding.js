@@ -30,8 +30,33 @@ router.post('/register', registerLimiter, async (req, res) => {
     });
   }
 
-  if (ownerPassword.length < 6) {
-    return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+  // 1. Restaurant Name: max 69 characters
+  if (restaurantName.trim().length > 69) {
+    return res.status(400).json({ message: 'Restaurant name cannot exceed 69 characters.' });
+  }
+
+  // 2. Owner Name: max 30 characters
+  if (ownerName && ownerName.trim().length > 30) {
+    return res.status(400).json({ message: 'Owner name cannot exceed 30 characters.' });
+  }
+
+  // 3. Mobile Number: strictly 10 digits if provided
+  if (ownerPhone && !/^\d{10}$/.test(ownerPhone.trim())) {
+    return res.status(400).json({ message: 'Mobile number must be exactly 10 digits.' });
+  }
+
+  // 4. Password: min 8 characters, at least 1 uppercase, 1 special character, 1 number
+  if (ownerPassword.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+  }
+  if (!/[A-Z]/.test(ownerPassword)) {
+    return res.status(400).json({ message: 'Password must contain at least one uppercase letter (A-Z).' });
+  }
+  if (!/[0-9]/.test(ownerPassword)) {
+    return res.status(400).json({ message: 'Password must contain at least one number (0-9).' });
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(ownerPassword)) {
+    return res.status(400).json({ message: 'Password must contain at least one special character (!@#$%^&* etc).' });
   }
 
   try {
