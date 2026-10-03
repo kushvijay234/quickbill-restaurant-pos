@@ -129,3 +129,41 @@ export interface ISubscriptionDetails {
   daysRemaining: number;
   razorpayKeyId?: string;
 }
+
+export interface ISuperAdminUser {
+  id: string;
+  username: string;
+  email: string;
+  role: 'superadmin';
+}
+
+export interface ISuperAdminTenant {
+  _id: string;
+  name: string;
+  slug: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerPhone: string;
+  status: 'trialing' | 'active' | 'past_due' | 'suspended' | 'cancelled' | 'expired';
+  activePlan: string;
+  trialEndsAt: string;
+  dataPruned: boolean;
+  dataPrunedAt?: string | null;
+  createdAt: string;
+  settings?: {
+    currency: string;
+    currencySymbol: string;
+  };
+}
+
+export interface ISuperAdminStats {
+  totalTenants: number;
+  activeTenants: number;
+  trialingTenants: number;
+  suspendedTenants: number;
+  expiredTenants: number;
+  dataPrunedTenants: number;
+  estimatedMRR: number;
+  currencyStats: Array<{ _id: string; count: number }>;
+  recentTenants: ISuperAdminTenant[];
+}

@@ -209,7 +209,7 @@ async function provisionTenant({
   const { models } = await getTenantConnection(normalizedSlug);
 
   // 7. Seed the primary Restaurant Billing User in the tenant's isolated DB
-  // Role is 'staff' so they only have access to bill & manage menu, without staff admin portal access
+  // Role is 'staff' focused purely on restaurant operations (POS billing & orders)
   const primaryUser = await models.User.create({
     username: cleanUsername,
     email: ownerEmail.toLowerCase().trim(),

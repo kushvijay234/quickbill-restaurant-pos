@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant } from './types';
+import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant, ISuperAdminUser } from './types';
 import { CURRENCIES, DEFAULT_TAX_RATE } from './constants';
 import Header from './components/Header';
 import MenuList from './components/MenuList';
@@ -20,10 +20,12 @@ import Footer from './components/Footer';
 import { api } from './services/api';
 import { logger } from './services/logger';
 import { useAuth } from './context/AuthContext';
-
+import AdminPanel from './components/AdminPanel';
+import SuperAdminPortal from './components/superadmin/SuperAdminPortal';
+import SuperAdminLogin from './components/superadmin/SuperAdminLogin';
 
 type Theme = 'light' | 'dark';
-type ActiveView = 'menu' | 'pastOrders';
+type ActiveView = 'menu' | 'pastOrders' | 'admin';
 
 const App: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -46,6 +48,51 @@ const App: React.FC = () => {
   const [isTaxIncluded, setIsTaxIncluded] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [subscriptionRefreshKey, setSubscriptionRefreshKey] = useState(0);
+
+  // Platform SuperAdmin Routing & Authentication State
+  const checkIsPortalUrl = () => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return path === '/portal' || path.startsWith('/portal') || search.includes('portal=superadmin') || search === '?portal';
+  };
+
+  const [isPortalRoute, setIsPortalRoute] = useState<boolean>(checkIsPortalUrl);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setIsPortalRoute(checkIsPortalUrl());
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
+  const [superAdminUser, setSuperAdminUser] = useState<ISuperAdminUser | null>(() => {
+    try {
+      const stored = localStorage.getItem('superadmin_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [superAdminToken, setSuperAdminToken] = useState<string | null>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('superadmin_token') : null;
+  });
+
+  const handleSuperAdminLogout = () => {
+    localStorage.removeItem('superadmin_token');
+    localStorage.removeItem('superadmin_user');
+    setSuperAdminToken(null);
+    setSuperAdminUser(null);
+  };
+
+  const handleExitPortal = () => {
+    handleSuperAdminLogout();
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+      setIsPortalRoute(false);
+    }
+  };
 
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -331,6 +378,31 @@ useEffect(() => {
     }
   };
   
+  // Dedicated SuperAdmin Platform Route (accessed via domain/portal)
+  if (isPortalRoute) {
+    if (superAdminUser && superAdminToken) {
+      return (
+        <SuperAdminPortal
+          user={superAdminUser}
+          token={superAdminToken}
+          onLogout={handleExitPortal}
+          onExitToPos={handleExitPortal}
+        />
+      );
+    }
+
+    return (
+      <SuperAdminLogin
+        onSuccess={(saUser, saToken) => {
+          setSuperAdminUser(saUser);
+          setSuperAdminToken(saToken);
+        }}
+        onBackToPos={handleExitPortal}
+      />
+    );
+  }
+
+  // Normal Restaurant User Flow
   if (!isAuthenticated || !user) {
     return <Login />;
   }
@@ -355,7 +427,9 @@ useEffect(() => {
         onOpenPlans={() => setShowSubscriptionModal(true)}
       />
       <main className="container mx-auto p-4 lg:p-8 flex-1">
-        {activeView === 'pastOrders' ? (
+        {activeView === 'admin' ? (
+          <AdminPanel />
+        ) : activeView === 'pastOrders' ? (
            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
             <PastOrders onViewOrder={handleViewPastOrder} />
            </div>

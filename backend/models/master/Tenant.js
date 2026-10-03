@@ -85,7 +85,7 @@ const TenantSchema = new mongoose.Schema({
   },
   activePlan: {
     type: String,
-    enum: ['starter', 'pro', 'enterprise'],
+    enum: ['starter', 'pro', 'professional', 'enterprise'],
     default: 'starter'
   },
   settings: {

@@ -92,6 +92,9 @@ const connectMasterDB = async () => {
     // Seed default plans if not already present
     await seedDefaultPlans(masterModels.Plan);
 
+    // Seed default Platform SuperAdmin if not already present
+    await seedDefaultSuperAdmin(masterModels.SuperAdmin);
+
     return { masterConnection, masterModels };
   } catch (error) {
     console.error(' Master DB connection error:', error.message);
@@ -110,6 +113,27 @@ const seedDefaultPlans = async (PlanModel) => {
     }
   } catch (err) {
     console.error('Failed to seed default SaaS plans:', err.message);
+  }
+};
+
+const seedDefaultSuperAdmin = async (SuperAdminModel) => {
+  try {
+    const existing = await SuperAdminModel.findOne({});
+    if (!existing) {
+      const email = (process.env.SUPERADMIN_EMAIL || 'superadmin@restobill.com').toLowerCase().trim();
+      const username = process.env.SUPERADMIN_USERNAME || 'superadmin';
+      const password = process.env.SUPERADMIN_PASSWORD || 'SuperAdmin@2026';
+
+      await SuperAdminModel.create({
+        username,
+        email,
+        password,
+        role: 'superadmin'
+      });
+      console.log(`[Master DB] Seeded default Platform SuperAdmin: ${email}`);
+    }
+  } catch (err) {
+    console.warn('[Master DB] Notice: SuperAdmin seeding skipped:', err.message);
   }
 };
 

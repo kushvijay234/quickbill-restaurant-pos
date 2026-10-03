@@ -9,8 +9,8 @@ interface HeaderProps {
   onAddNewItem: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
-  activeView: 'menu' | 'pastOrders';
-  onViewChange: (view: 'menu' | 'pastOrders') => void;
+  activeView: 'menu' | 'pastOrders' | 'admin';
+  onViewChange: (view: 'menu' | 'pastOrders' | 'admin') => void;
   pastOrderCount: number;
   onOpenProfile: () => void;
   user: IUser;
@@ -39,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
     };
   }, [menuRef]);
 
-  const handleMobileLinkClick = (view: 'menu' | 'pastOrders') => {
+  const handleMobileLinkClick = (view: 'menu' | 'pastOrders' | 'admin') => {
     onViewChange(view);
     setIsMobileMenuOpen(false);
   }
@@ -65,6 +65,17 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
                   {pastOrderCount}
               </span>
           </button>
+          {user && user.role === 'admin' && (
+            <button 
+                onClick={() => isMobile ? handleMobileLinkClick('admin') : onViewChange('admin')}
+                className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'admin' ? activeLinkClasses : inactiveLinkClasses} flex items-center gap-1.5`}
+            >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Admin Panel</span>
+            </button>
+          )}
         </nav>
     );
   }

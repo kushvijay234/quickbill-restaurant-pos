@@ -121,9 +121,10 @@ mongoose.connection.once('open', () => {
     seedAdminUser();
 });
 
-// SaaS Master Control Plane Routes (Public Onboarding & Billing)
+// SaaS Master Control Plane Routes (Public Onboarding, Billing & SuperAdmin Control)
 app.use('/api/saas', require('./routes/onboarding'));
 app.use('/api/subscription', require('./routes/subscription'));
+app.use('/api/superadmin', require('./routes/superadmin'));
 
 // Tenant Resolution & Subscription Enforcement for Data Plane Routes
 app.use('/api/auth', require('./routes/auth'));
