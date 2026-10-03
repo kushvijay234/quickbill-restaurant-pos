@@ -56,6 +56,8 @@ export interface IProfile {
   phone: string;
   logoUrl?: string;
   taxRate?: number;
+  currency?: string;
+  currencySymbol?: string;
 }
 
 export type UserRole = 'admin' | 'staff';

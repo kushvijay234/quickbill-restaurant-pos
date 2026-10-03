@@ -26,6 +26,14 @@ const ProfileSchema = new mongoose.Schema({
         min: 0,
         max: 1
     },
+    currency: {
+        type: String,
+        default: 'INR'
+    },
+    currencySymbol: {
+        type: String,
+        default: '₹'
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

@@ -21,6 +21,8 @@ router.post('/register', registerLimiter, async (req, res) => {
     ownerEmail,
     ownerPassword,
     ownerPhone,
+    currency,
+    currencySymbol,
     slug // Optional, auto-generated if absent
   } = req.body;
 
@@ -67,7 +69,9 @@ router.post('/register', registerLimiter, async (req, res) => {
       ownerUsername,
       ownerEmail,
       ownerPassword,
-      ownerPhone
+      ownerPhone,
+      currency: currency || 'INR',
+      currencySymbol: currencySymbol || '₹'
     });
 
     res.status(201).json({

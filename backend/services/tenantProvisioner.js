@@ -37,6 +37,87 @@ const SAMPLE_MENU_ITEMS = [
   }
 ];
 
+function getSampleMenuItems(currencyCode) {
+  const isHighValue = ['USD', 'EUR', 'GBP', 'CAD', 'AUD'].includes(currencyCode);
+  const isMidValue = ['AED', 'SAR', 'SGD'].includes(currencyCode);
+
+  if (isHighValue) {
+    return [
+      {
+        name: 'Classic Margherita Pizza',
+        imageUrl: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500',
+        variants: [
+          { name: 'Regular (8")', price: 12 },
+          { name: 'Medium (10")', price: 16 },
+          { name: 'Large (12")', price: 20 }
+        ]
+      },
+      {
+        name: 'Artisan Espresso / Cappuccino',
+        imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
+        variants: [
+          { name: 'Single Shot', price: 4 },
+          { name: 'Double Shot', price: 6 }
+        ]
+      },
+      {
+        name: 'Gourmet Cheese Burger',
+        imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500',
+        variants: [
+          { name: 'Single Patty', price: 9 },
+          { name: 'Double Patty & Bacon', price: 13 }
+        ]
+      },
+      {
+        name: 'Crispy French Fries',
+        imageUrl: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500',
+        variants: [
+          { name: 'Regular', price: 4 },
+          { name: 'Peri Peri Loaded', price: 6 }
+        ]
+      }
+    ];
+  } else if (isMidValue) {
+    return [
+      {
+        name: 'Classic Margherita Pizza',
+        imageUrl: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500',
+        variants: [
+          { name: 'Regular (8")', price: 35 },
+          { name: 'Medium (10")', price: 48 },
+          { name: 'Large (12")', price: 60 }
+        ]
+      },
+      {
+        name: 'Artisan Espresso / Cappuccino',
+        imageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
+        variants: [
+          { name: 'Single Shot', price: 15 },
+          { name: 'Double Shot', price: 22 }
+        ]
+      },
+      {
+        name: 'Gourmet Cheese Burger',
+        imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500',
+        variants: [
+          { name: 'Single Patty', price: 28 },
+          { name: 'Double Patty & Bacon', price: 38 }
+        ]
+      },
+      {
+        name: 'Crispy French Fries',
+        imageUrl: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=500',
+        variants: [
+          { name: 'Regular', price: 14 },
+          { name: 'Peri Peri Loaded', price: 20 }
+        ]
+      }
+    ];
+  }
+
+  return SAMPLE_MENU_ITEMS;
+}
+
 /**
  * Provisions a completely isolated database and credentials for a new restaurant.
  * Automatically generates clean URL slugs without requiring user input.
@@ -132,11 +213,14 @@ async function provisionTenant({
     restaurantName: name,
     phone: ownerPhone || 'N/A',
     taxRate: taxRate,
+    currency: currency,
+    currencySymbol: currencySymbol,
     userId: primaryUser._id
   });
 
   // 9. Seed Sample Menu Items so the restaurant can start billing immediately
-  for (const item of SAMPLE_MENU_ITEMS) {
+  const menuItemsToSeed = getSampleMenuItems(currency);
+  for (const item of menuItemsToSeed) {
     await models.MenuItem.create({
       name: item.name,
       variants: item.variants,

@@ -7,8 +7,31 @@ interface RestaurantRegisterProps {
   onSuccess?: () => void;
 }
 
+interface CountryCurrencyOption {
+  country: string;
+  currency: string;
+  symbol: string;
+  phoneCode: string;
+  flag: string;
+  phonePlaceholder: string;
+}
+
+const COUNTRY_OPTIONS: CountryCurrencyOption[] = [
+  { country: 'India', currency: 'INR', symbol: '₹', phoneCode: '+91', flag: '🇮🇳', phonePlaceholder: '9876543210' },
+  { country: 'United States', currency: 'USD', symbol: '$', phoneCode: '+1', flag: '🇺🇸', phonePlaceholder: '2025550143' },
+  { country: 'European Union', currency: 'EUR', symbol: '€', phoneCode: '+33', flag: '🇪🇺', phonePlaceholder: '612345678' },
+  { country: 'United Kingdom', currency: 'GBP', symbol: '£', phoneCode: '+44', flag: '🇬🇧', phonePlaceholder: '7911123456' },
+  { country: 'United Arab Emirates', currency: 'AED', symbol: 'د.إ', phoneCode: '+971', flag: '🇦🇪', phonePlaceholder: '501234567' },
+  { country: 'Canada', currency: 'CAD', symbol: '$', phoneCode: '+1', flag: '🇨🇦', phonePlaceholder: '4165550198' },
+  { country: 'Australia', currency: 'AUD', symbol: '$', phoneCode: '+61', flag: '🇦🇺', phonePlaceholder: '412345678' },
+  { country: 'Saudi Arabia', currency: 'SAR', symbol: '﷼', phoneCode: '+966', flag: '🇸🇦', phonePlaceholder: '512345678' },
+  { country: 'Singapore', currency: 'SGD', symbol: '$', phoneCode: '+65', flag: '🇸🇬', phonePlaceholder: '81234567' },
+  { country: 'Global / Other', currency: 'USD', symbol: '$', phoneCode: '+1', flag: '🌐', phonePlaceholder: '1234567890' }
+];
+
 const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSuccess }) => {
   const { login } = useAuth();
+  const [selectedCountry, setSelectedCountry] = useState<CountryCurrencyOption>(COUNTRY_OPTIONS[0]);
   const [restaurantName, setRestaurantName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [ownerEmail, setOwnerEmail] = useState('');
@@ -83,7 +106,9 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
         ownerName: cleanOwnerName || cleanRestName,
         ownerEmail: cleanEmail,
         ownerPhone: cleanPhone,
-        ownerPassword
+        ownerPassword,
+        currency: selectedCountry.currency,
+        currencySymbol: selectedCountry.symbol
       });
 
       if (data.tenant?.slug) {
@@ -168,6 +193,42 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
             />
           </div>
 
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Country & Payment Currency *
+              </label>
+              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                {selectedCountry.currency} ({selectedCountry.symbol}) — No conversion fees
+              </span>
+            </div>
+            <div className="relative">
+              <select
+                value={selectedCountry.country}
+                onChange={(e) => {
+                  const opt = COUNTRY_OPTIONS.find(c => c.country === e.target.value) || COUNTRY_OPTIONS[0];
+                  setSelectedCountry(opt);
+                  if (error) setError('');
+                }}
+                className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none"
+              >
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.country} value={c.country}>
+                    {c.flag} {c.country} — Currency: {c.currency} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+              Your menu items, bills, and customer receipts will be billed natively in {selectedCountry.currency} ({selectedCountry.symbol}).
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div className="flex justify-between items-center mb-1">
@@ -200,21 +261,21 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
                 </span>
               </div>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-xs font-medium text-gray-400 select-none">
-                  🇮🇳 +91
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-xs font-semibold text-gray-500 dark:text-gray-400 select-none">
+                  {selectedCountry.flag} {selectedCountry.phoneCode}
                 </span>
                 <input
                   type="tel"
                   inputMode="numeric"
                   maxLength={10}
-                  placeholder="9876543210"
+                  placeholder={selectedCountry.phonePlaceholder}
                   value={ownerPhone}
                   onChange={(e) => {
                     const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
                     setOwnerPhone(digits);
                     if (error) setError('');
                   }}
-                  className="w-full pl-16 pr-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full pl-20 pr-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
             </div>

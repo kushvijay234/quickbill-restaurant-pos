@@ -17,6 +17,9 @@ router.get('/', async (req, res) => {
         if (!profile) {
             profile = await Profile.create({ 
                 restaurantName: req.tenant?.name || 'RESTOBILL Restaurant',
+                currency: req.tenant?.settings?.currency || 'INR',
+                currencySymbol: req.tenant?.settings?.currencySymbol || '₹',
+                taxRate: req.tenant?.settings?.taxRate !== undefined ? req.tenant.settings.taxRate : 0.05,
                 userId: req.user.id 
             });
         }
@@ -30,7 +33,7 @@ router.get('/', async (req, res) => {
 // @desc    Update restaurant profile
 // @route   PUT /api/profile
 router.put('/', authorize('admin', 'staff'), async (req, res) => {
-    const { restaurantName, address, phone, logoUrl, taxRate } = req.body;
+    const { restaurantName, address, phone, logoUrl, taxRate, currency, currencySymbol } = req.body;
     
     const fieldsToUpdate = {};
     if (restaurantName !== undefined) fieldsToUpdate.restaurantName = restaurantName;
@@ -38,6 +41,8 @@ router.put('/', authorize('admin', 'staff'), async (req, res) => {
     if (phone !== undefined) fieldsToUpdate.phone = phone;
     if (logoUrl !== undefined) fieldsToUpdate.logoUrl = logoUrl;
     if (taxRate !== undefined) fieldsToUpdate.taxRate = taxRate;
+    if (currency !== undefined) fieldsToUpdate.currency = currency;
+    if (currencySymbol !== undefined) fieldsToUpdate.currencySymbol = currencySymbol;
 
     try {
         const Profile = getProfile(req);

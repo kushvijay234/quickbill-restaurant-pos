@@ -117,6 +117,16 @@ const App: React.FC = () => {
         ]);
         setProfile(profileData);
         setPastOrderCount(orderCountData.count);
+
+        // Synchronize active POS currency with restaurant profile
+        if (profileData?.currency) {
+          const matched = CURRENCIES.find(c => c.code === profileData.currency);
+          if (matched) {
+            setCurrency(matched);
+          } else if (profileData.currencySymbol) {
+            setCurrency({ code: profileData.currency, symbol: profileData.currencySymbol, rate: 1 });
+          }
+        }
     } catch (error) {
         let message = 'Could not load initial data. Please try again later.';
         if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
@@ -136,14 +146,6 @@ useEffect(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     logger.info('Theme changed', { theme: newTheme });
-  };
-  
-  const handleCurrencyChange = (code: string) => {
-    const newCurrency = CURRENCIES.find(c => c.code === code);
-    if (newCurrency) {
-      setCurrency(newCurrency);
-      logger.info('Currency changed', { currency: newCurrency.code });
-    }
   };
 
   const addToOrder = (itemToAdd: IMenuItem, selectedVariant: IMenuItemVariant) => {
@@ -315,6 +317,12 @@ useEffect(() => {
     try {
         const savedProfile = await api.put('/profile', updatedProfile);
         setProfile(savedProfile);
+        if (savedProfile?.currency) {
+          const matched = CURRENCIES.find(c => c.code === savedProfile.currency);
+          if (matched) {
+            setCurrency(matched);
+          }
+        }
         setShowProfileModal(false);
         logger.info('Profile updated successfully');
         showNotification({ message: 'Profile updated successfully!', type: 'success' });
@@ -335,7 +343,6 @@ useEffect(() => {
       />
       <Header
         currency={currency}
-        onCurrencyChange={handleCurrencyChange}
         onAddNewItem={() => setShowAddItemModal(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}

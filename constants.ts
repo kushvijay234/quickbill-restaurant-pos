@@ -3,9 +3,14 @@ import { ICurrency } from './types';
 
 export const CURRENCIES: ICurrency[] = [
   { code: 'INR', symbol: '₹', rate: 1 },
-  { code: 'USD', symbol: '$', rate: 0.012 },
-  { code: 'EUR', symbol: '€', rate: 0.011 },
-  { code: 'GBP', symbol: '£', rate: 0.0095 },
+  { code: 'USD', symbol: '$', rate: 1 },
+  { code: 'EUR', symbol: '€', rate: 1 },
+  { code: 'GBP', symbol: '£', rate: 1 },
+  { code: 'AED', symbol: 'د.إ', rate: 1 },
+  { code: 'CAD', symbol: '$', rate: 1 },
+  { code: 'AUD', symbol: '$', rate: 1 },
+  { code: 'SAR', symbol: '﷼', rate: 1 },
+  { code: 'SGD', symbol: '$', rate: 1 },
 ];
 
 export const DEFAULT_TAX_RATE = 0.05; // 5% Tax Rate

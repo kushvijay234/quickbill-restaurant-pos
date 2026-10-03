@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ICurrency, IUser } from '../types';
-import { CURRENCIES } from '../constants';
 
 interface HeaderProps {
   currency: ICurrency;
-  onCurrencyChange: (code: string) => void;
+  onCurrencyChange?: (code: string) => void;
   onAddNewItem: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
@@ -112,21 +111,13 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
               </svg>
             )}
           </button>
-            <div className="relative">
-              <select
-                value={currency.code}
-                onChange={(e) => onCurrencyChange(e.target.value)}
-                className="appearance-none bg-gray-100 dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md py-2 pl-3 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} ({c.symbol})
-                  </option>
-                ))}
-              </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-400">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-              </div>
+            {/* Read-only Currency Indicator for current restaurant */}
+            <div 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 text-xs font-bold text-gray-700 dark:text-gray-200 cursor-default select-none shadow-sm"
+              title="Billing currency is fixed to restaurant profile (edit in Restaurant Profile)"
+            >
+              <span className="text-indigo-600 dark:text-indigo-400 text-sm font-black">{currency.symbol}</span>
+              <span>{currency.code}</span>
             </div>
             <button
               onClick={onAddNewItem}
@@ -180,20 +171,9 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
             {renderNavLinks(true)}
           </div>
           <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
-              <div className="mb-4">
-                  <label htmlFor="mobile-currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
-                  <select
-                      id="mobile-currency"
-                      value={currency.code}
-                      onChange={(e) => { onCurrencyChange(e.target.value); setIsMobileMenuOpen(false); }}
-                      className="w-full appearance-none bg-gray-100 dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md py-2 pl-3 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                  >
-                      {CURRENCIES.map((c) => (
-                          <option key={c.code} value={c.code}>
-                              {c.code} ({c.symbol})
-                          </option>
-                      ))}
-                  </select>
+              <div className="mb-4 flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 text-xs">
+                  <span className="font-medium text-gray-600 dark:text-gray-300">Billing Currency:</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">{currency.symbol} {currency.code}</span>
               </div>
                <button
                   onClick={() => { onAddNewItem(); setIsMobileMenuOpen(false); }}
