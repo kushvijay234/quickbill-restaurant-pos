@@ -36,7 +36,13 @@ export const getTenantSlug = (): string | null => {
     if (parts.length > 2) {
       const subdomain = parts[0].toLowerCase();
       const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
-      if (!reserved.includes(subdomain)) {
+      const isReserved =
+        reserved.includes(subdomain) ||
+        subdomain.startsWith('quickbill') ||
+        host.endsWith('.onrender.com') ||
+        host.endsWith('.vercel.app');
+
+      if (!isReserved) {
         return subdomain;
       }
     }

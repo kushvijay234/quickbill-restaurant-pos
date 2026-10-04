@@ -40,6 +40,6 @@ export const adminService = {
    * Fetch audit logs
    */
   async getLogs() {
-    return await api.get('/logs');
+    return await api.get('/admin/logs');
   },
 };

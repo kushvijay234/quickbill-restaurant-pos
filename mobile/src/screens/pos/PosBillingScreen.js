@@ -74,9 +74,11 @@ export const PosBillingScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const data = await menuService.getMenu();
-      setMenuItems(data || []);
+      const items = Array.isArray(data) ? data : data?.data || [];
+      setMenuItems(items);
     } catch (e) {
       console.warn('Failed to load menu items:', e.message);
+      setMenuItems([]);
     } finally {
       setLoading(false);
     }
@@ -89,9 +91,11 @@ export const PosBillingScreen = ({ navigation }) => {
   // Derive categories from item names or standard tags
   const categories = useMemo(() => {
     const set = new Set(['All']);
-    menuItems.forEach((it) => {
+    const items = Array.isArray(menuItems) ? menuItems : [];
+    items.forEach((it) => {
+      if (!it || !it.name) return;
       // Categorize by first word or keywords if category isn't explicit
-      const name = it.name.toLowerCase();
+      const name = String(it.name || '').toLowerCase();
       if (name.includes('pizza')) set.add('Pizzas');
       else if (name.includes('burger')) set.add('Burgers');
       else if (name.includes('dosa') || name.includes('idli')) set.add('South Indian');
@@ -106,30 +110,36 @@ export const PosBillingScreen = ({ navigation }) => {
 
   // Filtered menu items based on search and category
   const filteredItems = useMemo(() => {
-    return menuItems.filter((item) => {
+    const items = Array.isArray(menuItems) ? menuItems : [];
+    return items.filter((item) => {
+      if (!item) return false;
+      const itemName = String(item.name || '').toLowerCase();
+      const query = String(searchQuery || '').toLowerCase();
       const matchSearch =
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (item.variants || []).some((v) =>
-          v.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        itemName.includes(query) ||
+        (Array.isArray(item.variants) &&
+          item.variants.some((v) =>
+            String(v?.name || '').toLowerCase().includes(query)
+          ));
 
       if (!matchSearch) return false;
       if (selectedCategory === 'All') return true;
 
-      const name = item.name.toLowerCase();
-      if (selectedCategory === 'Pizzas') return name.includes('pizza');
-      if (selectedCategory === 'Burgers') return name.includes('burger');
-      if (selectedCategory === 'South Indian') return name.includes('dosa') || name.includes('idli');
+      if (selectedCategory === 'Pizzas') return itemName.includes('pizza');
+      if (selectedCategory === 'Burgers') return itemName.includes('burger');
+      if (selectedCategory === 'South Indian')
+        return itemName.includes('dosa') || itemName.includes('idli');
       if (selectedCategory === 'Beverages')
-        return name.includes('coffee') || name.includes('tea') || name.includes('shake');
+        return itemName.includes('coffee') || itemName.includes('tea') || itemName.includes('shake');
       if (selectedCategory === 'Meals')
-        return name.includes('rice') || name.includes('biryani') || name.includes('curry');
+        return itemName.includes('rice') || itemName.includes('biryani') || itemName.includes('curry');
       return true;
     });
   }, [menuItems, searchQuery, selectedCategory]);
 
   const handleCardAdd = (item) => {
-    const variants = item.variants || [];
+    if (!item) return;
+    const variants = Array.isArray(item.variants) ? item.variants : [];
     if (variants.length <= 1) {
       addToCart(item, variants[0] || { name: 'Regular', price: 0 });
     } else {
@@ -139,12 +149,21 @@ export const PosBillingScreen = ({ navigation }) => {
 
   const handleAddItemSubmit = async (newItemData) => {
     const created = await menuService.addMenuItem(newItemData);
-    setMenuItems((prev) => [created, ...prev]);
+    if (created) {
+      setMenuItems((prev) => [created, ...(Array.isArray(prev) ? prev : [])]);
+    }
   };
 
   const handleUpdateItemSubmit = async (updatedItemData) => {
-    const updated = await menuService.updateMenuItem(updatedItemData.id, updatedItemData);
-    setMenuItems((prev) => prev.map((it) => (it.id === updated.id ? updated : it)));
+    const targetId = updatedItemData?.id || updatedItemData?._id;
+    const updated = await menuService.updateMenuItem(targetId, updatedItemData);
+    if (updated) {
+      setMenuItems((prev) =>
+        (Array.isArray(prev) ? prev : []).map((it) =>
+          ((it?.id || it?._id) === (updated?.id || updated?._id) ? updated : it)
+        )
+      );
+    }
   };
 
   const handleDeleteItem = async (itemId) => {
@@ -156,7 +175,9 @@ export const PosBillingScreen = ({ navigation }) => {
         onPress: async () => {
           try {
             await menuService.deleteMenuItem(itemId);
-            setMenuItems((prev) => prev.filter((it) => it.id !== itemId));
+            setMenuItems((prev) =>
+              (Array.isArray(prev) ? prev : []).filter((it) => (it?.id || it?._id) !== itemId)
+            );
           } catch (e) {
             Alert.alert('Error', e.message || 'Could not delete item');
           }
@@ -204,7 +225,7 @@ export const PosBillingScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <Header onOpenProfile={() => navigation.navigate('Profile')} />
+      <Header onOpenProfile={() => navigation.navigate('Settings')} />
 
       {/* Subscription notice if trialing */}
       <SubscriptionBanner onOpenSubscription={() => navigation.navigate('Subscription')} />
@@ -247,7 +268,7 @@ export const PosBillingScreen = ({ navigation }) => {
             data={filteredItems}
             key={numColumns}
             numColumns={numColumns}
-            keyExtractor={(item) => item.id || item._id}
+            keyExtractor={(item, index) => item?.id || item?._id || String(index)}
             renderItem={({ item }) => (
               <MenuItemCard
                 item={item}

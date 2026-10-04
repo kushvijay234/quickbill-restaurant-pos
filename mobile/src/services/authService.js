@@ -11,6 +11,9 @@ export const authService = {
   async login(usernameOrEmail, password, tenantSlug) {
     if (tenantSlug) {
       await storageService.setTenantSlug(tenantSlug);
+    } else {
+      // Clear any prior unverified tenant slug so backend can auto-route by email/username
+      await storageService.setTenantSlug(null);
     }
 
     const payload = {
@@ -43,7 +46,6 @@ export const authService = {
       const data = await api.get(`/saas/tenant/${slug.toLowerCase().trim()}`);
       return data;
     } catch (e) {
-      // Fallback: If public endpoint isn't available, allow proceed with warning
       return { slug, name: slug };
     }
   },
@@ -54,6 +56,7 @@ export const authService = {
   async logout() {
     await storageService.setToken(null);
     await storageService.setUser(null);
+    await storageService.setTenantSlug(null);
   },
 
   /**

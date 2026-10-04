@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
 import { COLORS } from '../constants/colors';
 import { storageService } from '../services/storageService';
 
@@ -11,7 +10,7 @@ const ThemeContext = createContext({
 });
 
 export const ThemeProvider = ({ children }) => {
-  const systemScheme = useColorScheme();
+  // Always default strictly to light mode matching frontend
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
@@ -19,10 +18,10 @@ export const ThemeProvider = ({ children }) => {
       if (saved === 'dark' || saved === 'light') {
         setTheme(saved);
       } else {
-        setTheme(systemScheme === 'dark' ? 'dark' : 'light');
+        setTheme('light');
       }
     });
-  }, [systemScheme]);
+  }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';

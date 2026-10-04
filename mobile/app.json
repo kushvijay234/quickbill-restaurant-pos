@@ -5,10 +5,10 @@
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "scheme": "quickbill",
     "splash": {
-      "backgroundColor": "#1e293b",
+      "backgroundColor": "#ffffff",
       "resizeMode": "contain"
     },
     "ios": {
@@ -17,13 +17,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1e293b",
+        "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/icon.png"
       },
       "package": "com.quickbill.restaurantpos"
     },
     "plugins": [
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ]
   }
 }

@@ -97,7 +97,7 @@ export const AdminDashboardScreen = ({ navigation }) => {
       desc: 'Update address, tax percentage, and currency',
       icon: 'business',
       screen: 'Profile',
-      color: '#059669',
+      color: COLORS.primary,
     },
     {
       title: 'SaaS Plan & Subscription',
@@ -110,7 +110,7 @@ export const AdminDashboardScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <Header onOpenProfile={() => navigation.navigate('Profile')} />
+      <Header onOpenProfile={() => navigation.navigate('Settings')} />
 
       <ScrollView
         contentContainerStyle={styles.container}

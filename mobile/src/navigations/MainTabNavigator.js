@@ -13,7 +13,7 @@ const Tab = createBottomTabNavigator();
 
 export const MainTabNavigator = () => {
   const { user } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const isAdmin = user?.role === 'admin';
 
@@ -35,7 +35,7 @@ export const MainTabNavigator = () => {
           fontWeight: '700',
         },
         tabBarIcon: ({ color, size, focused }) => {
-          let iconName;
+          let iconName = 'restaurant-outline';
 
           if (route.name === 'POS') {
             iconName = focused ? 'restaurant' : 'restaurant-outline';
@@ -53,7 +53,9 @@ export const MainTabNavigator = () => {
     >
       <Tab.Screen name="POS" component={PosBillingScreen} />
       <Tab.Screen name="Orders" component={PastOrdersScreen} />
-      {isAdmin && <Tab.Screen name="Admin" component={AdminDashboardScreen} />}
+      {isAdmin ? (
+        <Tab.Screen name="Admin" component={AdminDashboardScreen} />
+      ) : null}
       <Tab.Screen name="Settings" component={RestaurantProfileScreen} />
     </Tab.Navigator>
   );

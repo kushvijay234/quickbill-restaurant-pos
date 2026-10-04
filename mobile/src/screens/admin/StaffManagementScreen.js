@@ -39,9 +39,10 @@ export const StaffManagementScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const data = await adminService.getUsers();
-      setUsers(data || []);
+      setUsers(Array.isArray(data) ? data : data?.users || []);
     } catch (e) {
       console.warn('Failed to load users:', e.message);
+      setUsers([]);
     } finally {
       setLoading(false);
     }

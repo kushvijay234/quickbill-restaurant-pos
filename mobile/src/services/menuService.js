@@ -2,10 +2,18 @@ import { api } from './api';
 
 export const menuService = {
   /**
-   * Fetch all menu items
+   * Fetch all menu items (extracts array from { data, page, totalPages, total })
    */
-  async getMenu() {
-    return await api.get('/menu');
+  async getMenu(params = {}) {
+    const query = new URLSearchParams();
+    query.append('limit', params.limit || '100');
+    if (params.page) query.append('page', params.page);
+    if (params.search) query.append('search', params.search);
+    const queryString = `?${query.toString()}`;
+    const res = await api.get(`/menu${queryString}`);
+    if (Array.isArray(res)) return res;
+    if (res && Array.isArray(res.data)) return res.data;
+    return [];
   },
 
   /**

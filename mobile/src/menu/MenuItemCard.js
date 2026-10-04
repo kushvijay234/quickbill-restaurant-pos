@@ -71,7 +71,7 @@ export const MenuItemCard = ({
                 <Ionicons name="pencil" size={14} color={COLORS.accent} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => onDelete(item.id)}
+                onPress={() => onDelete(item.id || item._id)}
                 style={[styles.smallIconBtn, { backgroundColor: '#fee2e2' }]}
               >
                 <Ionicons name="trash-outline" size={14} color={COLORS.danger} />
