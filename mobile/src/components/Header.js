@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Badge } from './common/Badge';
 import { COLORS } from '../constants/colors';
 
-export const Header = ({ onOpenProfile }) => {
+export const Header = ({ onOpenProfile, onOpenSubscription }) => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const { user, profile, tenantSlug, logout } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
 
@@ -64,6 +66,20 @@ export const Header = ({ onOpenProfile }) => {
       </View>
 
       <View style={styles.rightRow}>
+        {/* Plan & Billing Shortcut */}
+        <TouchableOpacity
+          onPress={() => {
+            if (onOpenSubscription) {
+              onOpenSubscription();
+            } else {
+              navigation.navigate('Subscription');
+            }
+          }}
+          style={[styles.iconButton, { backgroundColor: isDark ? 'rgba(79, 70, 229, 0.2)' : '#eef2ff' }]}
+        >
+          <Ionicons name="sparkles" size={18} color={COLORS.primary} />
+        </TouchableOpacity>
+
         {/* Dark / Light Mode Toggle */}
         <TouchableOpacity
           onPress={toggleTheme}

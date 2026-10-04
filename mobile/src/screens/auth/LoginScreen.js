@@ -20,7 +20,7 @@ import { setApiBaseUrl, getApiBaseUrl } from '../../services/api';
 import { LOCAL_API_URL, CLOUD_API_URL, DEFAULT_API_URL } from '../../constants/config';
 import { COLORS } from '../../constants/colors';
 
-export const LoginScreen = () => {
+export const LoginScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const { login } = useAuth();
 
@@ -156,6 +156,23 @@ export const LoginScreen = () => {
               size="lg"
               style={styles.signInBtn}
             />
+
+            {/* Register Action */}
+            <View style={[styles.registerSection, { borderTopColor: colors.border }]}>
+              <Text style={[styles.registerPrompt, { color: colors.textMuted }]}>
+                New to QuickBill POS?
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('Register')}
+                style={[styles.registerBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#eef2ff', borderColor: '#c7d2fe' }]}
+              >
+                <Ionicons name="sparkles" size={16} color={COLORS.primary} />
+                <Text style={[styles.registerBtnText, { color: COLORS.primary }]}>
+                  Register Your Restaurant (14-Day Free Trial)
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Server Environment Bar */}
             <View style={[styles.serverEnvBar, { borderTopColor: colors.border }]}>
@@ -328,8 +345,34 @@ const styles = StyleSheet.create({
   signInBtn: {
     marginTop: 8,
   },
+  registerSection: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  registerPrompt: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  registerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  registerBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
   serverEnvBar: {
-    marginTop: 20,
+    marginTop: 16,
     paddingTop: 14,
     borderTopWidth: 1,
   },

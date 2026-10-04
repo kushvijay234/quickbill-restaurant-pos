@@ -17,7 +17,11 @@ export const subscriptionService = {
    */
   async getPlans() {
     try {
-      return await api.get('/subscription/plans');
+      const res = await api.get('/subscription/plans');
+      if (Array.isArray(res)) return res;
+      if (res && Array.isArray(res.plans)) return res.plans;
+      if (res && Array.isArray(res.data)) return res.data;
+      return [];
     } catch {
       return [];
     }

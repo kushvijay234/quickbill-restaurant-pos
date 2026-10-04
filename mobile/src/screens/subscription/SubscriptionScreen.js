@@ -17,10 +17,46 @@ import { useTheme } from '../../context/ThemeContext';
 import { subscriptionService } from '../../services/subscriptionService';
 import { COLORS } from '../../constants/colors';
 
+const DEFAULT_PLANS_FALLBACK = [
+  {
+    planId: 'starter',
+    name: 'Starter Essential',
+    description: 'Perfect for small cafes and food kiosks starting out',
+    priceInr: 999,
+    features: {
+      maxStaff: 3,
+      maxMenuItems: 50,
+      maxOrdersPerMonth: 500,
+    },
+  },
+  {
+    planId: 'pro',
+    name: 'Professional Business',
+    description: 'Ideal for busy restaurants needing full table & order analytics',
+    priceInr: 2499,
+    features: {
+      maxStaff: 15,
+      maxMenuItems: 500,
+      maxOrdersPerMonth: 'Unlimited',
+    },
+  },
+  {
+    planId: 'enterprise',
+    name: 'Enterprise Multi-Chain',
+    description: 'For restaurant chains, franchise groups, and high-volume dining',
+    priceInr: 5999,
+    features: {
+      maxStaff: 100,
+      maxMenuItems: 5000,
+      maxOrdersPerMonth: 'Unlimited',
+    },
+  },
+];
+
 export const SubscriptionScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const [subData, setSubData] = useState(null);
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState(DEFAULT_PLANS_FALLBACK);
   const [loading, setLoading] = useState(false);
 
   const fetchSubscription = useCallback(async () => {
@@ -31,7 +67,12 @@ export const SubscriptionScreen = ({ navigation }) => {
         subscriptionService.getPlans(),
       ]);
       setSubData(current);
-      setPlans(Array.isArray(allPlans) ? allPlans : []);
+      const plansList = Array.isArray(allPlans)
+        ? allPlans
+        : allPlans?.plans || allPlans?.data || [];
+      if (plansList.length > 0) {
+        setPlans(plansList);
+      }
     } catch (e) {
       console.warn('Subscription fetch warning:', e.message);
     } finally {
@@ -50,7 +91,7 @@ export const SubscriptionScreen = ({ navigation }) => {
   const handleUpgrade = (plan) => {
     Alert.alert(
       'Upgrade Plan',
-      `To upgrade to ${plan.name} (₹${plan.priceInr}/mo), please complete checkout on your QuickBill desktop portal.`,
+      `To upgrade to ${plan.name} (₹${plan.priceInr}/mo), please contact your account manager or complete checkout in the QuickBill portal.`,
       [{ text: 'OK' }]
     );
   };
@@ -62,7 +103,7 @@ export const SubscriptionScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>SaaS Subscription</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Plan & Billing</Text>
         <View style={{ width: 32 }} />
       </View>
 

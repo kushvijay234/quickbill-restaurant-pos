@@ -100,7 +100,7 @@ export const AdminDashboardScreen = ({ navigation }) => {
       color: COLORS.primary,
     },
     {
-      title: 'SaaS Plan & Subscription',
+      title: 'Plan & Billing',
       desc: 'View active limits, trial status, and renewals',
       icon: 'sparkles',
       screen: 'Subscription',
