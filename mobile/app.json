@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "QuickBill POS",
+    "slug": "quickbill-restaurant-pos",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "quickbill",
+    "splash": {
+      "backgroundColor": "#1e293b",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.quickbill.restaurantpos"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1e293b",
+        "foregroundImage": "./assets/icon.png"
+      },
+      "package": "com.quickbill.restaurantpos"
+    },
+    "plugins": [
+      "expo-sharing"
+    ]
+  }
+}

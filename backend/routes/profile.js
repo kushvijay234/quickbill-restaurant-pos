@@ -1,52 +1,59 @@
-
 const express = require('express');
-const Profile = require('../models/profile');
+const DefaultProfile = require('../models/profile');
 const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// All routes in this file are protected
 router.use(protect);
 
-// @desc    Get or create restaurant profile for the logged-in user
+const getProfile = (req) => (req.tenantModels && req.tenantModels.Profile) || DefaultProfile;
+
+// @desc    Get or create restaurant profile for the current restaurant
 // @route   GET /api/profile
 router.get('/', async (req, res) => {
     try {
-        let profile = await Profile.findOne({ userId: req.user.id });
+        const Profile = getProfile(req);
+        let profile = await Profile.findOne();
         if (!profile) {
-            // Let the Mongoose schema handle the default values on creation
-            profile = await Profile.create({ userId: req.user.id });
+            profile = await Profile.create({ 
+                restaurantName: req.tenant?.name || 'RESTOBILL Restaurant',
+                currency: req.tenant?.settings?.currency || 'INR',
+                currencySymbol: req.tenant?.settings?.currencySymbol || '₹',
+                taxRate: req.tenant?.settings?.taxRate !== undefined ? req.tenant.settings.taxRate : 0.05,
+                userId: req.user.id 
+            });
         }
         res.json(profile);
     } catch (err) {
-        console.error(err.message);
+        console.error('[Profile GET Error]:', err.message);
         res.status(500).send('Server Error');
     }
 });
 
-// @desc    Update restaurant profile for the logged-in user (upsert)
+// @desc    Update restaurant profile
 // @route   PUT /api/profile
 router.put('/', authorize('admin', 'staff'), async (req, res) => {
-    const { restaurantName, address, phone, logoUrl, taxRate } = req.body;
+    const { restaurantName, address, phone, logoUrl, taxRate, currency, currencySymbol } = req.body;
     
-    // Build an object with only the fields that were provided in the request
     const fieldsToUpdate = {};
     if (restaurantName !== undefined) fieldsToUpdate.restaurantName = restaurantName;
     if (address !== undefined) fieldsToUpdate.address = address;
     if (phone !== undefined) fieldsToUpdate.phone = phone;
     if (logoUrl !== undefined) fieldsToUpdate.logoUrl = logoUrl;
     if (taxRate !== undefined) fieldsToUpdate.taxRate = taxRate;
+    if (currency !== undefined) fieldsToUpdate.currency = currency;
+    if (currencySymbol !== undefined) fieldsToUpdate.currencySymbol = currencySymbol;
 
     try {
-        // Find the profile by userId and update it with the provided fields
+        const Profile = getProfile(req);
         let profile = await Profile.findOneAndUpdate(
-            { userId: req.user.id },
+            {},
             { $set: fieldsToUpdate },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
         res.json(profile);
     } catch (err) {
-        console.error(err.message);
+        console.error('[Profile PUT Error]:', err.message);
         res.status(500).send('Server Error');
     }
 });

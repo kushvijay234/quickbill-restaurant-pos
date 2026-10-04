@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant } from './types';
+import { IMenuItem, IOrderItem, ICustomer, ICurrency, INotification, IOrder, IProfile, PaymentMethod, IUser, IMenuItemVariant, ISuperAdminUser } from './types';
 import { CURRENCIES, DEFAULT_TAX_RATE } from './constants';
 import Header from './components/Header';
 import MenuList from './components/MenuList';
@@ -14,11 +14,15 @@ import EditItemModal from './components/EditItemModal';
 import ProfileModal from './components/ProfileModal';
 import PaymentModal from './components/PaymentModal';
 import Login from './components/Login';
-import AdminPanel from './components/AdminPanel';
+import SubscriptionModal from './components/saas/SubscriptionModal';
+import SubscriptionBanner from './components/saas/SubscriptionBanner';
+import Footer from './components/Footer';
 import { api } from './services/api';
 import { logger } from './services/logger';
 import { useAuth } from './context/AuthContext';
-
+import AdminPanel from './components/AdminPanel';
+import SuperAdminPortal from './components/superadmin/SuperAdminPortal';
+import SuperAdminLogin from './components/superadmin/SuperAdminLogin';
 
 type Theme = 'light' | 'dark';
 type ActiveView = 'menu' | 'pastOrders' | 'admin';
@@ -42,6 +46,53 @@ const App: React.FC = () => {
   const [pastOrderCount, setPastOrderCount] = useState(0);
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
   const [isTaxIncluded, setIsTaxIncluded] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionRefreshKey, setSubscriptionRefreshKey] = useState(0);
+
+  // Platform SuperAdmin Routing & Authentication State
+  const checkIsPortalUrl = () => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return path === '/portal' || path.startsWith('/portal') || search.includes('portal=superadmin') || search === '?portal';
+  };
+
+  const [isPortalRoute, setIsPortalRoute] = useState<boolean>(checkIsPortalUrl);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setIsPortalRoute(checkIsPortalUrl());
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, []);
+
+  const [superAdminUser, setSuperAdminUser] = useState<ISuperAdminUser | null>(() => {
+    try {
+      const stored = localStorage.getItem('superadmin_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [superAdminToken, setSuperAdminToken] = useState<string | null>(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('superadmin_token') : null;
+  });
+
+  const handleSuperAdminLogout = () => {
+    localStorage.removeItem('superadmin_token');
+    localStorage.removeItem('superadmin_user');
+    setSuperAdminToken(null);
+    setSuperAdminUser(null);
+  };
+
+  const handleExitPortal = () => {
+    handleSuperAdminLogout();
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', '/');
+      setIsPortalRoute(false);
+    }
+  };
 
 
   const [theme, setTheme] = useState<Theme>(() => {
@@ -63,14 +114,19 @@ const App: React.FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
   
-  // Set initial view based on user role, and clear state on logout
+  // Set initial view strictly to POS billing and check subscription after login
   useEffect(() => {
     if (isAuthenticated && user) {
-       if (user.role === 'admin') {
-         setActiveView('admin');
-       } else {
-         setActiveView('menu');
-       }
+       setActiveView('menu');
+
+       // Check if user has an active paid subscription; if not, show subscription options
+       api.get('/subscription/current')
+         .then((data) => {
+           if (data && data.tenant && data.tenant.status !== 'active') {
+             setShowSubscriptionModal(true);
+           }
+         })
+         .catch(() => {});
     } else {
         // Clear all session state on logout
         setProfile(null);
@@ -108,6 +164,16 @@ const App: React.FC = () => {
         ]);
         setProfile(profileData);
         setPastOrderCount(orderCountData.count);
+
+        // Synchronize active POS currency with restaurant profile
+        if (profileData?.currency) {
+          const matched = CURRENCIES.find(c => c.code === profileData.currency);
+          if (matched) {
+            setCurrency(matched);
+          } else if (profileData.currencySymbol) {
+            setCurrency({ code: profileData.currency, symbol: profileData.currencySymbol, rate: 1 });
+          }
+        }
     } catch (error) {
         let message = 'Could not load initial data. Please try again later.';
         if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
@@ -127,14 +193,6 @@ useEffect(() => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     logger.info('Theme changed', { theme: newTheme });
-  };
-  
-  const handleCurrencyChange = (code: string) => {
-    const newCurrency = CURRENCIES.find(c => c.code === code);
-    if (newCurrency) {
-      setCurrency(newCurrency);
-      logger.info('Currency changed', { currency: newCurrency.code });
-    }
   };
 
   const addToOrder = (itemToAdd: IMenuItem, selectedVariant: IMenuItemVariant) => {
@@ -306,6 +364,12 @@ useEffect(() => {
     try {
         const savedProfile = await api.put('/profile', updatedProfile);
         setProfile(savedProfile);
+        if (savedProfile?.currency) {
+          const matched = CURRENCIES.find(c => c.code === savedProfile.currency);
+          if (matched) {
+            setCurrency(matched);
+          }
+        }
         setShowProfileModal(false);
         logger.info('Profile updated successfully');
         showNotification({ message: 'Profile updated successfully!', type: 'success' });
@@ -314,15 +378,43 @@ useEffect(() => {
     }
   };
   
+  // Dedicated SuperAdmin Platform Route (accessed via domain/portal)
+  if (isPortalRoute) {
+    if (superAdminUser && superAdminToken) {
+      return (
+        <SuperAdminPortal
+          user={superAdminUser}
+          token={superAdminToken}
+          onLogout={handleExitPortal}
+          onExitToPos={handleExitPortal}
+        />
+      );
+    }
+
+    return (
+      <SuperAdminLogin
+        onSuccess={(saUser, saToken) => {
+          setSuperAdminUser(saUser);
+          setSuperAdminToken(saToken);
+        }}
+        onBackToPos={handleExitPortal}
+      />
+    );
+  }
+
+  // Normal Restaurant User Flow
   if (!isAuthenticated || !user) {
     return <Login />;
   }
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300 flex flex-col">
+      <SubscriptionBanner
+        onOpenPlans={() => setShowSubscriptionModal(true)}
+        refreshTrigger={subscriptionRefreshKey}
+      />
       <Header
         currency={currency}
-        onCurrencyChange={handleCurrencyChange}
         onAddNewItem={() => setShowAddItemModal(true)}
         theme={theme}
         onToggleTheme={handleToggleTheme}
@@ -332,9 +424,16 @@ useEffect(() => {
         onOpenProfile={() => setShowProfileModal(true)}
         user={user}
         onLogout={logout}
+        onOpenPlans={() => setShowSubscriptionModal(true)}
       />
-      <main className="container mx-auto p-4 lg:p-8">
-        {activeView === 'menu' ? (
+      <main className="container mx-auto p-4 lg:p-8 flex-1">
+        {activeView === 'admin' ? (
+          <AdminPanel />
+        ) : activeView === 'pastOrders' ? (
+           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
+            <PastOrders onViewOrder={handleViewPastOrder} />
+           </div>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
               <MenuList 
@@ -367,14 +466,9 @@ useEffect(() => {
               </div>
             </div>
           </div>
-        ) : activeView === 'pastOrders' ? (
-           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-colors duration-300">
-            <PastOrders onViewOrder={handleViewPastOrder} />
-           </div>
-        ) : (
-          <AdminPanel />
-        ) }
+        )}
       </main>
+      <Footer />
       {showAddItemModal && (
         <AddItemModal
           onClose={() => setShowAddItemModal(false)}
@@ -420,6 +514,12 @@ useEffect(() => {
           profile={profile}
           onClose={() => setShowProfileModal(false)}
           onSave={handleSaveProfile}
+        />
+      )}
+      {showSubscriptionModal && (
+        <SubscriptionModal
+          onClose={() => setShowSubscriptionModal(false)}
+          onSuccess={() => setSubscriptionRefreshKey(prev => prev + 1)}
         />
       )}
     </div>

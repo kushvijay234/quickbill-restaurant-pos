@@ -1,38 +1,48 @@
-
 const express = require('express');
-const Order = require('../models/order');
+const DefaultOrder = require('../models/order');
+const DefaultMenuItem = require('../models/menuItem');
+const DefaultProfile = require('../models/profile');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Helper to escape regex special characters
+const escapeRegex = (text) => text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+
 // All routes in this file are protected
 router.use(protect);
 
-// @desc    Get total order count for the logged-in user
+const getOrder = (req) => (req.tenantModels && req.tenantModels.Order) || DefaultOrder;
+const getMenuItem = (req) => (req.tenantModels && req.tenantModels.MenuItem) || DefaultMenuItem;
+const getProfile = (req) => (req.tenantModels && req.tenantModels.Profile) || DefaultProfile;
+
+// @desc    Get total order count for the restaurant
 // @route   GET /api/orders/count
 router.get('/count', async (req, res) => {
     try {
-        const count = await Order.countDocuments({ userId: req.user.id });
+        const Order = getOrder(req);
+        const count = await Order.countDocuments();
         res.json({ count });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('[Orders Count Error]:', err.message);
+        res.status(500).json({ message: 'Server Error' });
     }
 });
 
-// @desc    Get all orders for the logged-in user with server-side handling
+// @desc    Get all orders for the restaurant with server-side filtering & pagination
 // @route   GET /api/orders
 router.get('/', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        const Order = getOrder(req);
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const requestedLimit = parseInt(req.query.limit);
         const search = req.query.search || '';
         const sortBy = req.query.sortBy || 'date';
         const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
         const paymentFilter = req.query.paymentFilter;
         const filterType = req.query.filterType;
 
-        const query = { userId: req.user.id };
+        const query = {};
 
         // Payment filtering
         if (paymentFilter && paymentFilter !== 'all') {
@@ -61,31 +71,23 @@ router.get('/', async (req, res) => {
             query.date = { $gte: startDate, $lte: endDate };
         }
 
-        // Search filtering
-        if (search) {
-             const searchRegex = { $regex: search, $options: 'i' };
-             const isNumeric = !isNaN(parseFloat(search)) && isFinite(search);
-             
-             const searchOrConditions = [
+        // Search filtering with escaped regex
+        if (search && typeof search === 'string' && search.trim() !== '') {
+            const searchRegex = { $regex: escapeRegex(search.trim()), $options: 'i' };
+            query.$or = [
                 { 'customer.name': searchRegex },
-                { 'id': searchRegex }
-             ];
-
-             if(isNumeric){
-                 // A simple way to check if search string could match total.
-                 // This won't be indexed and can be slow on large datasets, but is okay for this scale.
-                 // A better approach would be a dedicated text index or a more complex aggregation pipeline.
-                 // For now, this is a reasonable trade-off.
-             }
-
-            query.$or = searchOrConditions;
+                { 'customer.mobile': searchRegex }
+            ];
         }
         
-        // Special case for CSV export: limit=0 means get all
-        if (limit === 0) {
-            const allOrders = await Order.find(query).sort({ [sortBy]: sortOrder });
-            return res.json({ data: allOrders, total: allOrders.length, totalPages: 1, page: 1 });
+        // Special case for CSV export: cap at 1000 to prevent OOM
+        if (requestedLimit === 0) {
+            const exportOrders = await Order.find(query).sort({ [sortBy]: sortOrder }).limit(1000);
+            return res.json({ data: exportOrders, total: exportOrders.length, totalPages: 1, page: 1 });
         }
+
+        // Cap limit to a safe range (max 100)
+        const limit = Math.min(100, Math.max(1, requestedLimit || 20));
 
         const total = await Order.countDocuments(query);
         const orders = await Order.find(query)
@@ -96,31 +98,120 @@ router.get('/', async (req, res) => {
         res.json({
             data: orders,
             page,
-            totalPages: Math.ceil(total / limit),
+            totalPages: Math.ceil(total / limit) || 1,
             total,
         });
 
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('[Orders GET Error]:', err.message);
+        res.status(500).json({ message: 'Server Error' });
     }
 });
 
-
-// @desc    Create a new order for the logged-in user
+// @desc    Create a new order with server-side price validation & calculation
 // @route   POST /api/orders
 router.post('/', async (req, res) => {
     try {
+        const Order = getOrder(req);
+        const MenuItem = getMenuItem(req);
+        const Profile = getProfile(req);
+
+        const { customer, items, paymentMethod, isTaxIncluded } = req.body;
+
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ message: 'Order must contain at least one item.' });
+        }
+
+        if (!['cash', 'upi', 'card'].includes(paymentMethod)) {
+            return res.status(400).json({ message: 'Invalid payment method.' });
+        }
+
+        // Extract item IDs and query authoritative menu items from tenant database
+        const itemIds = items.map(oi => oi.item?.id).filter(Boolean);
+        const dbItems = await MenuItem.find({ _id: { $in: itemIds } });
+        const dbItemMap = new Map(dbItems.map(item => [item._id.toString(), item]));
+
+        let calculatedSubtotal = 0;
+        const verifiedItems = [];
+
+        for (const orderItem of items) {
+            const itemId = orderItem.item?.id;
+            const variantName = orderItem.selectedVariant?.name;
+            const quantity = parseInt(orderItem.quantity, 10);
+
+            if (!quantity || quantity <= 0) {
+                return res.status(400).json({ message: 'Invalid quantity for an item.' });
+            }
+
+            const dbItem = dbItemMap.get(itemId);
+            if (!dbItem) {
+                return res.status(400).json({ message: `Item "${orderItem.item?.name || itemId}" not found in your restaurant menu.` });
+            }
+
+            const dbVariant = dbItem.variants.find(v => v.name === variantName);
+            if (!dbVariant) {
+                return res.status(400).json({ message: `Variant "${variantName}" not found for item "${dbItem.name}".` });
+            }
+
+            const lineTotal = dbVariant.price * quantity;
+            calculatedSubtotal += lineTotal;
+
+            verifiedItems.push({
+                item: {
+                    id: dbItem._id.toString(),
+                    name: dbItem.name,
+                    imageUrl: dbItem.imageUrl || '',
+                },
+                quantity,
+                selectedVariant: {
+                    name: dbVariant.name,
+                    price: dbVariant.price,
+                }
+            });
+        }
+
+        calculatedSubtotal = parseFloat(calculatedSubtotal.toFixed(2));
+
+        // Get restaurant tax rate and currency from authoritative tenant profile
+        const userProfile = await Profile.findOne();
+        const taxRate = typeof userProfile?.taxRate === 'number' ? userProfile.taxRate : 0.05;
+
+        // Apply tax if requested or if client order included tax
+        const taxApplied = Boolean(isTaxIncluded || (req.body.tax && req.body.tax > 0));
+        const calculatedTax = taxApplied ? parseFloat((calculatedSubtotal * taxRate).toFixed(2)) : 0;
+        const calculatedTotal = parseFloat((calculatedSubtotal + calculatedTax).toFixed(2));
+
+        // Customer data sanitization
+        const customerData = {
+            name: (customer?.name && typeof customer.name === 'string') 
+                ? customer.name.trim().substring(0, 50) || 'Cash' 
+                : 'Cash',
+            mobile: (customer?.mobile && typeof customer.mobile === 'string') 
+                ? customer.mobile.trim().substring(0, 20) 
+                : '',
+        };
+
         const newOrder = new Order({
-            ...req.body,
-            date: new Date().toISOString(),
+            customer: customerData,
+            items: verifiedItems,
+            subtotal: calculatedSubtotal,
+            tax: calculatedTax,
+            total: calculatedTotal,
+            currency: {
+                code: 'INR',
+                symbol: '₹',
+                rate: 1
+            },
+            paymentMethod,
+            date: new Date(),
             userId: req.user.id
         });
+
         const order = await newOrder.save();
         res.status(201).json(order);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        console.error('[Order Create Error]:', err);
+        res.status(500).json({ message: 'Server error creating order.' });
     }
 });
 

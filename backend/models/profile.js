@@ -4,7 +4,7 @@ const ProfileSchema = new mongoose.Schema({
     restaurantName: {
         type: String,
         required: true,
-        default: 'QuickBill Restaurant'
+        default: 'RESTOBILL Restaurant'
     },
     address: {
         type: String,
@@ -25,6 +25,14 @@ const ProfileSchema = new mongoose.Schema({
         default: 0.18,
         min: 0,
         max: 1
+    },
+    currency: {
+        type: String,
+        default: 'INR'
+    },
+    currencySymbol: {
+        type: String,
+        default: '₹'
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -52,4 +60,6 @@ const ProfileSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Profile', ProfileSchema);
+const ProfileModel = mongoose.models.Profile || mongoose.model('Profile', ProfileSchema);
+module.exports = ProfileModel;
+module.exports.ProfileSchema = ProfileSchema;

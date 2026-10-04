@@ -1,105 +1,165 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { logger } from '../services/logger';
-import { api } from '../services/api';
+import { api, setTenantSlug } from '../services/api';
+import RestaurantRegister from './saas/RestaurantRegister';
+import Footer from './Footer';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
 
-    if (!username || !password) {
-      setError('Username and password are required.');
-      setIsLoading(false);
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
+      setError('Please enter your email and password.');
       return;
     }
 
-    try {
-      const data = await api.post('/auth/login', { username, password });
+    setIsLoading(true);
 
-      const { token, user } = data;
+    try {
+      const data = await api.post('/auth/login', { 
+        email: cleanEmail,
+        username: cleanEmail, // backwards compatibility for existing systems
+        password
+      });
+
+      const { token, user, tenant } = data;
+      if (tenant && tenant.slug) {
+        setTenantSlug(tenant.slug);
+      }
+
       login(token, user);
-      logger.info('User logged in successfully', { username: user.username });
+      logger.info('User logged in successfully', { email: user.email || user.username });
       
-    } catch (err) {
-      const errorMessage = (err as Error).message;
+    } catch (err: any) {
+      const errorMessage = err.message || 'Invalid email or password';
       setError(errorMessage);
-      logger.error('Login failed', { username, error: errorMessage });
+      logger.error('Login failed', { email: cleanEmail, error: errorMessage });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-        <div>
-          <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-gray-100">
-            QuickBill<span className="text-indigo-600">POS</span>
-          </h1>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            Sign in to your account
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
+    <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+          <div className="text-center">
+            
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+              RESTO<span className="text-indigo-600">BILL</span>
+            </h1>
+            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase mt-1">
+              Bill. Serve. Grow.
+            </p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Sign in to your restaurant workspace
+            </p>
+          </div>
+
+          <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="sr-only">
-                Username
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
+                Email Address
               </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  placeholder="owner@restaurant.com"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
             </div>
+
             <div>
-              <label htmlFor="password-input" className="sr-only">
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1">
                 Password
               </label>
-              <input
-                id="password-input"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="password-input"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (error) setError('');
+                  }}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
             </div>
-          </div>
-          
-          {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
-          <div>
+            {error && (
+              <div 
+                role="alert" 
+                className="flex items-start gap-2.5 p-3.5 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 text-xs sm:text-sm animate-fade-in"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div className="flex-1 font-medium leading-relaxed">
+                  {error}
+                </div>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+              className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] transition duration-150 shadow-md shadow-indigo-500/20 disabled:opacity-50"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="pt-4 border-t border-gray-100 dark:border-gray-700 text-center space-y-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Don't have a restaurant account yet?
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowRegisterModal(true)}
+              className="w-full py-2 px-4 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 transition border border-indigo-200 dark:border-indigo-800"
+            >
+              Register Your Restaurant (14-Day Free Trial)
             </button>
           </div>
-        </form>
-         <p className="mt-2 text-center text-xs text-gray-500 dark:text-gray-400">
-            Testing : test / test
-          </p>
+        </div>
       </div>
+
+      <Footer />
+
+      {showRegisterModal && (
+        <RestaurantRegister 
+          onClose={() => setShowRegisterModal(false)} 
+          onSwitchToLogin={(existingEmail) => {
+            if (existingEmail) {
+              setEmail(existingEmail);
+            }
+            setShowRegisterModal(false);
+          }}
+        />
+      )}
     </div>
   );
 };

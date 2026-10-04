@@ -8,6 +8,11 @@ const UserSchema = new mongoose.Schema({
     required: [true, 'Please add a username'],
     unique: true,
   },
+  email: {
+    type: String,
+    lowercase: true,
+    trim: true,
+  },
   role: {
     type: String,
     enum: ['admin', 'staff'],
@@ -16,7 +21,7 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: 4,
+    minlength: [6, 'Password must be at least 6 characters'],
     select: false, // Don't return password by default
   },
   createdAt: {
@@ -53,9 +58,16 @@ UserSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Sign JWT and return
-UserSchema.methods.getSignedJwtToken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET || 'secret', {
+// Sign JWT and return (optionally embedding tenantSlug for multi-tenant context)
+UserSchema.methods.getSignedJwtToken = function (tenantSlug) {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+  const payload = { id: this._id };
+  if (tenantSlug) {
+    payload.tenantSlug = tenantSlug;
+  }
+  return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || '1d',
   });
 };
@@ -65,4 +77,6 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-module.exports = mongoose.model('User', UserSchema);
+const UserModel = mongoose.models.User || mongoose.model('User', UserSchema);
+module.exports = UserModel;
+module.exports.UserSchema = UserSchema;

@@ -151,7 +151,7 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
             const url = URL.createObjectURL(blob);
             link.setAttribute('href', url);
             const dateStr = new Date().toISOString().split('T')[0];
-            link.setAttribute('download', `quickbill_orders_${dateStr}.csv`);
+            link.setAttribute('download', `restobill_orders_${dateStr}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();

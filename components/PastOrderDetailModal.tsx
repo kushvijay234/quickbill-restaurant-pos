@@ -25,7 +25,7 @@ const PastOrderDetailModal: React.FC<PastOrderDetailModalProps> = ({ order, prof
             <img src={profile.logoUrl} alt="Restaurant Logo" className="mx-auto h-20 w-auto object-contain mb-4" />
           )}
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Order Details</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{profile?.restaurantName || 'QuickBill Restaurant'}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{profile?.restaurantName || 'RESTOBILL Restaurant'}</p>
         </div>
         
         <div className="mb-4 text-gray-700 dark:text-gray-300">

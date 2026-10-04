@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { IProfile } from '../types';
+import { CURRENCIES } from '../constants';
 
 interface ProfileModalProps {
   profile: IProfile;
@@ -13,6 +14,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
   const [phone, setPhone] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [taxRate, setTaxRate] = useState('');
+  const [currencyCode, setCurrencyCode] = useState('INR');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -22,6 +24,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
       setPhone(profile.phone);
       setLogoUrl(profile.logoUrl || '');
       setTaxRate(profile.taxRate !== undefined ? String(profile.taxRate * 100) : '');
+      setCurrencyCode(profile.currency || 'INR');
     }
   }, [profile]);
 
@@ -40,7 +43,17 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
 
     setError('');
     const taxRateDecimal = taxRate ? taxRateNumber / 100 : undefined;
-    onSave({ restaurantName, address, phone, logoUrl, taxRate: taxRateDecimal });
+    const selectedCurr = CURRENCIES.find(c => c.code === currencyCode) || CURRENCIES[0];
+
+    onSave({ 
+      restaurantName, 
+      address, 
+      phone, 
+      logoUrl, 
+      taxRate: taxRateDecimal,
+      currency: selectedCurr.code,
+      currencySymbol: selectedCurr.symbol
+    });
   };
 
   return (
@@ -85,16 +98,36 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
               className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
             />
           </div>
-           <div>
-            <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tax Rate (%)</label>
-            <input
-              type="number"
-              id="taxRate"
-              value={taxRate}
-              onChange={(e) => setTaxRate(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
-              placeholder="e.g., 18"
-            />
+           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Billing Currency</label>
+              <select
+                id="currency"
+                value={currencyCode}
+                onChange={(e) => setCurrencyCode(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+                All bills and receipts use this currency natively without conversion.
+              </p>
+            </div>
+            <div>
+              <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tax Rate (%)</label>
+              <input
+                type="number"
+                id="taxRate"
+                value={taxRate}
+                onChange={(e) => setTaxRate(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:text-white sm:text-sm"
+                placeholder="e.g., 5"
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="logoUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Logo Image URL</label>

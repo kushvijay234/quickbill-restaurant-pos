@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ICurrency, IUser } from '../types';
-import { CURRENCIES } from '../constants';
 
 interface HeaderProps {
   currency: ICurrency;
-  onCurrencyChange: (code: string) => void;
+  onCurrencyChange?: (code: string) => void;
   onAddNewItem: () => void;
   theme: 'light' | 'dark';
   onToggleTheme: () => void;
@@ -16,9 +15,10 @@ interface HeaderProps {
   onOpenProfile: () => void;
   user: IUser;
   onLogout: () => void;
+  onOpenPlans?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewItem, theme, onToggleTheme, activeView, onViewChange, pastOrderCount, onOpenProfile, user, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewItem, theme, onToggleTheme, activeView, onViewChange, pastOrderCount, onOpenProfile, user, onLogout, onOpenPlans }) => {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -26,8 +26,6 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
   const navLinkClasses = "px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200";
   const activeLinkClasses = "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300";
   const inactiveLinkClasses = "text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700";
-  
-  const isStaff = user.role === 'staff';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -52,30 +50,30 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
     
     return (
        <nav className={isMobile ? "flex flex-col w-full space-y-1" : "hidden md:flex items-center space-x-2"}>
-          {isStaff ? (
-            <>
-              <button 
-                  onClick={() => isMobile ? handleMobileLinkClick('menu') : onViewChange('menu')}
-                  className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'menu' ? activeLinkClasses : inactiveLinkClasses}`}
-              >
-                  Menu
-              </button>
-              <button 
-                  onClick={() => isMobile ? handleMobileLinkClick('pastOrders') : onViewChange('pastOrders')}
-                  className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'pastOrders' ? activeLinkClasses : inactiveLinkClasses} flex justify-between items-center`}
-              >
-                  <span>Past Orders</span>
-                  <span className="ml-1.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full">
-                      {pastOrderCount}
-                  </span>
-              </button>
-            </>
-          ) : (
+          <button 
+              onClick={() => isMobile ? handleMobileLinkClick('menu') : onViewChange('menu')}
+              className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'menu' ? activeLinkClasses : inactiveLinkClasses}`}
+          >
+              POS Billing
+          </button>
+          <button 
+              onClick={() => isMobile ? handleMobileLinkClick('pastOrders') : onViewChange('pastOrders')}
+              className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'pastOrders' ? activeLinkClasses : inactiveLinkClasses} flex justify-between items-center`}
+          >
+              <span>Past Orders</span>
+              <span className="ml-1.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {pastOrderCount}
+              </span>
+          </button>
+          {user && user.role === 'admin' && (
             <button 
                 onClick={() => isMobile ? handleMobileLinkClick('admin') : onViewChange('admin')}
-                className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'admin' ? activeLinkClasses : inactiveLinkClasses}`}
+                className={`${isMobile ? mobileClasses : desktopClasses} ${activeView === 'admin' ? activeLinkClasses : inactiveLinkClasses} flex items-center gap-1.5`}
             >
-                Admin Panel
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span>Admin Panel</span>
             </button>
           )}
         </nav>
@@ -86,9 +84,14 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
     <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40 transition-colors duration-300">
       <div className="container mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-8">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-            QuickBill<span className="text-indigo-600">POS</span>
-            </h1>
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight flex items-center leading-none">
+                RESTO<span className="text-indigo-600">BILL</span>
+              </h1>
+              <span className="text-[10px] font-bold text-indigo-600/80 dark:text-indigo-400/80 tracking-wider uppercase mt-0.5">
+                Bill. Serve. Grow.
+              </span>
+            </div>
             {renderNavLinks(false)}
         </div>
 
@@ -119,25 +122,14 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
               </svg>
             )}
           </button>
-          {isStaff && (
-            <div className="relative">
-              <select
-                value={currency.code}
-                onChange={(e) => onCurrencyChange(e.target.value)}
-                className="appearance-none bg-gray-100 dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md py-2 pl-3 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} ({c.symbol})
-                  </option>
-                ))}
-              </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-400">
-                  <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-              </div>
+            {/* Read-only Currency Indicator for current restaurant */}
+            <div 
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/80 border border-gray-200 dark:border-gray-600 text-xs font-bold text-gray-700 dark:text-gray-200 cursor-default select-none shadow-sm"
+              title="Billing currency is fixed to restaurant profile (edit in Restaurant Profile)"
+            >
+              <span className="text-indigo-600 dark:text-indigo-400 text-sm font-black">{currency.symbol}</span>
+              <span>{currency.code}</span>
             </div>
-          )}
-          {isStaff && (
             <button
               onClick={onAddNewItem}
               className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 text-sm font-medium"
@@ -146,6 +138,15 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
                 <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
               </svg>
               Add Item
+            </button>
+          {onOpenPlans && (
+            <button
+              onClick={onOpenPlans}
+              className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-2 rounded-md hover:from-indigo-600 hover:to-purple-700 text-xs font-semibold shadow-sm transition"
+              title="Manage SaaS Plan & Razorpay Subscriptions"
+            >
+              <span>💳</span>
+              <span className="hidden lg:inline">Plans & Billing</span>
             </button>
           )}
           <button
@@ -181,24 +182,10 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
             {renderNavLinks(true)}
           </div>
           <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-3">
-            {isStaff && (
-              <div className="mb-4">
-                  <label htmlFor="mobile-currency" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Currency</label>
-                  <select
-                      id="mobile-currency"
-                      value={currency.code}
-                      onChange={(e) => { onCurrencyChange(e.target.value); setIsMobileMenuOpen(false); }}
-                      className="w-full appearance-none bg-gray-100 dark:bg-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md py-2 pl-3 pr-8 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                  >
-                      {CURRENCIES.map((c) => (
-                          <option key={c.code} value={c.code}>
-                              {c.code} ({c.symbol})
-                          </option>
-                      ))}
-                  </select>
+              <div className="mb-4 flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 text-xs">
+                  <span className="font-medium text-gray-600 dark:text-gray-300">Billing Currency:</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">{currency.symbol} {currency.code}</span>
               </div>
-            )}
-            {isStaff && (
                <button
                   onClick={() => { onAddNewItem(); setIsMobileMenuOpen(false); }}
                   className="flex items-center justify-center w-full bg-indigo-600 text-white px-4 py-2.5 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 text-sm font-medium mb-3"
@@ -208,7 +195,6 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
                   </svg>
                   Add Item
                 </button>
-            )}
              <div className="flex justify-around items-center">
                  <button
                     onClick={() => { onOpenProfile(); setIsMobileMenuOpen(false); }}

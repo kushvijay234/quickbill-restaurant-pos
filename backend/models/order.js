@@ -68,4 +68,9 @@ const OrderSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Order', OrderSchema);
+OrderSchema.index({ userId: 1, date: -1 });
+OrderSchema.index({ userId: 1, paymentMethod: 1 });
+
+const OrderModel = mongoose.models.Order || mongoose.model('Order', OrderSchema);
+module.exports = OrderModel;
+module.exports.OrderSchema = OrderSchema;
