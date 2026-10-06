@@ -26,4 +26,18 @@ export const subscriptionService = {
       return [];
     }
   },
+
+  /**
+   * Create Razorpay order for plan upgrade
+   */
+  async createOrder({ planId, billingCycle = 'monthly' }) {
+    return await api.post('/subscription/create-order', { planId, billingCycle });
+  },
+
+  /**
+   * Verify Razorpay payment and activate subscription
+   */
+  async verifyPayment(paymentData) {
+    return await api.post('/subscription/verify-payment', paymentData);
+  },
 };
