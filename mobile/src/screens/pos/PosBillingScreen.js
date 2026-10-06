@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
   Dimensions,
@@ -223,7 +222,7 @@ export const PosBillingScreen = ({ navigation }) => {
   const canManageMenu = user?.role === 'admin';
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       {/* Header */}
       <Header onOpenProfile={() => navigation.navigate('Settings')} />
 
@@ -468,7 +467,7 @@ export const PosBillingScreen = ({ navigation }) => {
           clearCart();
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

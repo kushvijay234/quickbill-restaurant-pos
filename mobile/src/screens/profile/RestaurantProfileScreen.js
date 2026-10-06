@@ -4,11 +4,11 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -103,24 +103,25 @@ export const RestaurantProfileScreen = ({ navigation }) => {
   const planStatus = subData?.tenant?.status === 'active' ? 'Active' : 'Trial';
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="settings-outline" size={22} color={COLORS.primary} />
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Settings & Account</Text>
-        </View>
-        <TouchableOpacity
-          onPress={toggleTheme}
-          style={[styles.themeBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9' }]}
-        >
-          <Ionicons
-            name={isDark ? 'sunny-outline' : 'moon-outline'}
-            size={18}
-            color={isDark ? '#f59e0b' : '#475569'}
-          />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="Settings & Account"
+        showBack={navigation.canGoBack?.() || false}
+        leftIcon="settings-outline"
+        rightAction={
+          <TouchableOpacity
+            onPress={toggleTheme}
+            style={[styles.themeBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9' }]}
+          >
+            <Ionicons
+              name={isDark ? 'sunny-outline' : 'moon-outline'}
+              size={18}
+              color={isDark ? '#f59e0b' : '#475569'}
+            />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         {/* PROMINENT PLAN & BILLING CARD */}
@@ -313,7 +314,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
           <Text style={[styles.logoutBtnText, { color: COLORS.danger }]}>Sign Out of POS</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

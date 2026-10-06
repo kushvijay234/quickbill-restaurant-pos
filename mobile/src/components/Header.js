@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, StatusBar, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,10 @@ export const Header = ({ onOpenProfile, onOpenSubscription }) => {
   const navigation = useNavigation();
   const { user, profile, tenantSlug, logout } = useAuth();
   const { isDark, toggleTheme, colors } = useTheme();
+
+  const topInset = Platform.OS === 'android'
+    ? Math.max(insets.top, StatusBar.currentHeight || 24)
+    : insets.top;
 
   const handleLogoutPress = () => {
     Alert.alert('Sign Out', 'Are you sure you want to end your POS session?', [
@@ -28,7 +32,7 @@ export const Header = ({ onOpenProfile, onOpenSubscription }) => {
       style={[
         styles.container,
         {
-          paddingTop: Math.max(insets.top, 12),
+          paddingTop: Math.max(topInset, 12) + 6,
           backgroundColor: colors.surface,
           borderBottomColor: colors.border,
         },

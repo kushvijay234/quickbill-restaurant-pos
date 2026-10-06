@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
@@ -89,7 +88,7 @@ export const PastOrdersScreen = ({ navigation }) => {
   }, [filteredOrders]);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <Header onOpenProfile={() => navigation.navigate('Settings')} />
 
       <View style={styles.container}>
@@ -203,7 +202,7 @@ export const PastOrdersScreen = ({ navigation }) => {
         order={selectedOrder}
         profile={profile}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

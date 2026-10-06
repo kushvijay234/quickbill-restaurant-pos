@@ -4,11 +4,11 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { Badge } from '../../components/common/Badge';
 import { useTheme } from '../../context/ThemeContext';
 import { adminService } from '../../services/adminService';
@@ -53,15 +53,12 @@ export const AuditLogsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Audit & Event Logs</Text>
-        <View style={{ width: 32 }} />
-      </View>
+      <ScreenHeader
+        title="Audit & Event Logs"
+        onBack={() => navigation.goBack()}
+      />
 
       {/* Level Filters */}
       <View style={styles.filterRow}>
@@ -141,7 +138,7 @@ export const AuditLogsScreen = ({ navigation }) => {
           )
         }
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
