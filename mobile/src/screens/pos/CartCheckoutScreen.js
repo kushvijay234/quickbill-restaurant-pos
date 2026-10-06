@@ -4,12 +4,12 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { CartItemRow } from '../../components/cart/CartItemRow';
 import { CustomerInputForm } from '../../components/cart/CustomerInputForm';
 import { PaymentModal } from '../../components/orders/PaymentModal';
@@ -91,21 +91,21 @@ export const CartCheckoutScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       {/* Top Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Checkout & Order</Text>
-        {items.length > 0 ? (
-          <TouchableOpacity onPress={handleClear} style={styles.clearBtn}>
-            <Text style={{ color: COLORS.danger, fontWeight: '700', fontSize: 14 }}>Clear</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={{ width: 40 }} />
-        )}
-      </View>
+      <ScreenHeader
+        title="Checkout & Order"
+        onBack={() => navigation.goBack()}
+        rightAction={
+          items.length > 0 ? (
+            <TouchableOpacity onPress={handleClear} style={styles.clearBtn}>
+              <Text style={{ color: COLORS.danger, fontWeight: '700', fontSize: 14 }}>Clear</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 40 }} />
+          )
+        }
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Customer Information Card */}
@@ -254,7 +254,7 @@ export const CartCheckoutScreen = ({ navigation }) => {
           navigation.goBack();
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

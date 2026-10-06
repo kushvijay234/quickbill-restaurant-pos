@@ -2,13 +2,15 @@ import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { AuthNavigator } from './AuthNavigator';
+import { LoginScreen } from '../screens/auth/LoginScreen';
+import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { MainTabNavigator } from './MainTabNavigator';
 import { CartCheckoutScreen } from '../screens/pos/CartCheckoutScreen';
 import { StaffManagementScreen } from '../screens/admin/StaffManagementScreen';
 import { AuditLogsScreen } from '../screens/admin/AuditLogsScreen';
 import { RestaurantProfileScreen } from '../screens/profile/RestaurantProfileScreen';
 import { SubscriptionScreen } from '../screens/subscription/SubscriptionScreen';
+import { MenuManagementScreen } from '../screens/menu/MenuManagementScreen';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { COLORS } from '../constants/colors';
@@ -48,9 +50,12 @@ export const AppNavigator = () => {
         }}
       >
         {!isAuthenticated ? (
-          <RootStack.Screen name="Auth" component={AuthNavigator} />
+          <RootStack.Group>
+            <RootStack.Screen name="Login" component={LoginScreen} />
+            <RootStack.Screen name="Register" component={RegisterScreen} />
+          </RootStack.Group>
         ) : (
-          <>
+          <RootStack.Group>
             <RootStack.Screen name="MainTabs" component={MainTabNavigator} />
             <RootStack.Screen
               name="CartCheckout"
@@ -60,8 +65,11 @@ export const AppNavigator = () => {
             <RootStack.Screen name="StaffManagement" component={StaffManagementScreen} />
             <RootStack.Screen name="AuditLogs" component={AuditLogsScreen} />
             <RootStack.Screen name="Profile" component={RestaurantProfileScreen} />
+            <RootStack.Screen name="Settings" component={RestaurantProfileScreen} />
             <RootStack.Screen name="Subscription" component={SubscriptionScreen} />
-          </>
+            <RootStack.Screen name="PlanAndBilling" component={SubscriptionScreen} />
+            <RootStack.Screen name="MenuManagement" component={MenuManagementScreen} />
+          </RootStack.Group>
         )}
       </RootStack.Navigator>
     </NavigationContainer>

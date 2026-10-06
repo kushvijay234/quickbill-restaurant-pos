@@ -1,19 +1,20 @@
 export const COLORS = {
-  // Brand colors
-  primary: '#059669', // Emerald 600
-  primaryDark: '#047857',
-  primaryLight: '#34d399',
-  accent: '#3b82f6', // Blue 500
+  // Brand colors - Matching Frontend (Tailwind Indigo-600)
+  primary: '#4f46e5', // Indigo 600
+  primaryDark: '#4338ca', // Indigo 700
+  primaryLight: '#6366f1', // Indigo 500
+  primarySoft: '#eef2ff', // Indigo 50
+  accent: '#4f46e5',
 
-  // Neutral Light Theme
+  // Frontend Light Theme
   light: {
-    background: '#f8fafc',
+    background: '#f9fafb', // Gray 50
     surface: '#ffffff',
-    surfaceSubtle: '#f1f5f9',
-    border: '#e2e8f0',
-    text: '#0f172a',
-    textMuted: '#64748b',
-    textSecondary: '#475569',
+    surfaceSubtle: '#f3f4f6', // Gray 100
+    border: '#e5e7eb', // Gray 200
+    text: '#111827', // Gray 900
+    textSecondary: '#4b5563', // Gray 600
+    textMuted: '#9ca3af', // Gray 400
     card: '#ffffff',
     shadow: '#000000',
   },
@@ -40,5 +41,5 @@ export const COLORS = {
   // Payment methods
   cash: '#10b981',
   upi: '#8b5cf6',
-  card: '#3b82f6',
+  card: '#4f46e5',
 };

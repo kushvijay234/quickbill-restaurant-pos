@@ -29,9 +29,15 @@ function extractTenantSlug(req) {
     const parts = hostWithoutPort.split('.');
     if (parts.length > 2) {
       const subdomain = parts[0].toLowerCase();
-      // Exclude reserved platform subdomains
+      // Exclude reserved platform subdomains and cloud hosting providers (e.g. onrender.com, vercel.app)
       const reserved = ['www', 'api', 'admin', 'app', 'localhost', 'quickbill-restaurant-pos'];
-      if (!reserved.includes(subdomain)) {
+      const isReserved =
+        reserved.includes(subdomain) ||
+        subdomain.startsWith('quickbill') ||
+        hostWithoutPort.endsWith('.onrender.com') ||
+        hostWithoutPort.endsWith('.vercel.app');
+
+      if (!isReserved) {
         return subdomain;
       }
     }
@@ -90,6 +96,9 @@ function resolveTenant(options = { optional: false }) {
       next();
     } catch (err) {
       if (err.code === 'TENANT_NOT_FOUND') {
+        if (options.optional) {
+          return next();
+        }
         return res.status(404).json({
           message: `Restaurant instance '${req.headers['x-tenant-id'] || 'unknown'}' not found. Please verify your restaurant URL or register a new account.`,
           code: 'TENANT_NOT_FOUND'

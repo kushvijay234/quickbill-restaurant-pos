@@ -4,12 +4,12 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -39,9 +39,10 @@ export const StaffManagementScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const data = await adminService.getUsers();
-      setUsers(data || []);
+      setUsers(Array.isArray(data) ? data : data?.users || []);
     } catch (e) {
       console.warn('Failed to load users:', e.message);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -115,17 +116,17 @@ export const StaffManagementScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Staff Accounts</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addBtn}>
-          <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader
+        title="Staff Accounts"
+        onBack={() => navigation.goBack()}
+        rightAction={
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addBtn}>
+            <Ionicons name="person-add-outline" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={users}
@@ -268,7 +269,7 @@ export const StaffManagementScreen = ({ navigation }) => {
           />
         </View>
       </ModalContainer>
-    </SafeAreaView>
+    </View>
   );
 };
 

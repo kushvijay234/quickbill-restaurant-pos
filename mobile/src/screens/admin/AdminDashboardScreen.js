@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
@@ -97,10 +96,10 @@ export const AdminDashboardScreen = ({ navigation }) => {
       desc: 'Update address, tax percentage, and currency',
       icon: 'business',
       screen: 'Profile',
-      color: '#059669',
+      color: COLORS.primary,
     },
     {
-      title: 'SaaS Plan & Subscription',
+      title: 'Plan & Billing',
       desc: 'View active limits, trial status, and renewals',
       icon: 'sparkles',
       screen: 'Subscription',
@@ -109,8 +108,8 @@ export const AdminDashboardScreen = ({ navigation }) => {
   ];
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <Header onOpenProfile={() => navigation.navigate('Profile')} />
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <Header />
 
       <ScrollView
         contentContainerStyle={styles.container}
@@ -175,7 +174,7 @@ export const AdminDashboardScreen = ({ navigation }) => {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

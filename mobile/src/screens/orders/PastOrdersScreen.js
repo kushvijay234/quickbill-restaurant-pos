@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
@@ -35,9 +34,10 @@ export const PastOrdersScreen = ({ navigation }) => {
     try {
       setLoading(true);
       const data = await orderService.getOrders();
-      setOrders(Array.isArray(data) ? data : data?.orders || []);
+      setOrders(Array.isArray(data) ? data : data?.data || data?.orders || []);
     } catch (e) {
       console.warn('Failed to load past orders:', e.message);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -48,20 +48,26 @@ export const PastOrdersScreen = ({ navigation }) => {
   }, [fetchOrders]);
 
   const filteredOrders = useMemo(() => {
+    const list = Array.isArray(orders) ? orders : [];
     const now = new Date();
     const todayStr = now.toDateString();
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toDateString();
 
-    return orders.filter((order) => {
+    return list.filter((order) => {
+      if (!order) return false;
       // Search matching
-      const q = searchQuery.toLowerCase();
+      const q = (searchQuery || '').toLowerCase();
+      const orderId = String(order.id || order._id || '').toLowerCase();
+      const custName = String(order.customer?.name || '').toLowerCase();
+      const custMobile = String(order.customer?.mobile || '');
+
       const matchSearch =
         !q ||
-        (order.id && order.id.toLowerCase().includes(q)) ||
-        (order.customer?.name && order.customer.name.toLowerCase().includes(q)) ||
-        (order.customer?.mobile && order.customer.mobile.includes(q));
+        orderId.includes(q) ||
+        custName.includes(q) ||
+        custMobile.includes(q);
 
       if (!matchSearch) return false;
 
@@ -76,13 +82,14 @@ export const PastOrdersScreen = ({ navigation }) => {
 
   // Aggregate metrics
   const { totalSales, totalCount } = useMemo(() => {
-    const total = filteredOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-    return { totalSales: total, totalCount: filteredOrders.length };
+    const list = Array.isArray(filteredOrders) ? filteredOrders : [];
+    const total = list.reduce((sum, o) => sum + (o?.total || 0), 0);
+    return { totalSales: total, totalCount: list.length };
   }, [filteredOrders]);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <Header onOpenProfile={() => navigation.navigate('Profile')} />
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <Header />
 
       <View style={styles.container}>
         {/* Search Input */}
@@ -162,7 +169,7 @@ export const PastOrdersScreen = ({ navigation }) => {
         {/* Orders List */}
         <FlatList
           data={filteredOrders}
-          keyExtractor={(item) => item.id || item._id}
+          keyExtractor={(item, index) => item?.id || item?._id || String(index)}
           renderItem={({ item }) => (
             <OrderCard order={item} onPress={() => setSelectedOrder(item)} />
           )}
@@ -195,7 +202,7 @@ export const PastOrdersScreen = ({ navigation }) => {
         order={selectedOrder}
         profile={profile}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

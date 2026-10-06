@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { PosBillingScreen } from '../screens/pos/PosBillingScreen';
 import { PastOrdersScreen } from '../screens/orders/PastOrdersScreen';
 import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
-import { RestaurantProfileScreen } from '../screens/profile/RestaurantProfileScreen';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { COLORS } from '../constants/colors';
@@ -13,7 +12,7 @@ const Tab = createBottomTabNavigator();
 
 export const MainTabNavigator = () => {
   const { user } = useAuth();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const isAdmin = user?.role === 'admin';
 
@@ -35,26 +34,25 @@ export const MainTabNavigator = () => {
           fontWeight: '700',
         },
         tabBarIcon: ({ color, size, focused }) => {
-          let iconName;
+          let iconName = 'restaurant-outline';
 
-          if (route.name === 'POS') {
+          if (route.name === 'Menu') {
             iconName = focused ? 'restaurant' : 'restaurant-outline';
           } else if (route.name === 'Orders') {
             iconName = focused ? 'receipt' : 'receipt-outline';
           } else if (route.name === 'Admin') {
             iconName = focused ? 'shield-checkmark' : 'shield-checkmark-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
           }
 
           return <Ionicons name={iconName} size={size || 22} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="POS" component={PosBillingScreen} />
+      <Tab.Screen name="Menu" component={PosBillingScreen} />
       <Tab.Screen name="Orders" component={PastOrdersScreen} />
-      {isAdmin && <Tab.Screen name="Admin" component={AdminDashboardScreen} />}
-      <Tab.Screen name="Settings" component={RestaurantProfileScreen} />
+      {isAdmin ? (
+        <Tab.Screen name="Admin" component={AdminDashboardScreen} />
+      ) : null}
     </Tab.Navigator>
   );
 };

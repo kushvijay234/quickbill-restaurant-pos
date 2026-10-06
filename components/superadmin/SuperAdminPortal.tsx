@@ -561,7 +561,7 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
             <div className="space-y-2">
               {[
                 { id: 'active', label: 'Active Paid (Full Billing Access)', desc: 'Granted full operations' },
-                { id: 'trialing', label: 'Trialing (14-Day Free Period)', desc: 'Allows free trial orders' },
+                { id: 'trialing', label: 'Trialing (3-Day Free Period)', desc: 'Allows free trial orders' },
                 { id: 'suspended', label: 'Suspended (Blocked Mutations)', desc: 'Requires subscription to bill' },
                 { id: 'expired', label: 'Expired (Trial Ended)', desc: 'Blocks operational billing' }
               ].map(opt => (

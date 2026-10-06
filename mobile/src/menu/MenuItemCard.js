@@ -1,17 +1,17 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../constants/currencies';
 import { COLORS } from '../constants/colors';
 
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
+
 export const MenuItemCard = ({
   item,
   currency,
   onAddToCart,
-  onEdit,
-  onDelete,
-  canManage = false,
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -60,25 +60,8 @@ export const MenuItemCard = ({
 
         <Text style={[styles.price, { color: COLORS.primary }]}>{priceLabel}</Text>
 
-        {/* Action Row */}
+        {/* Action Row - Only Add button */}
         <View style={styles.actionRow}>
-          {canManage && (
-            <View style={styles.manageIcons}>
-              <TouchableOpacity
-                onPress={() => onEdit(item)}
-                style={[styles.smallIconBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9' }]}
-              >
-                <Ionicons name="pencil" size={14} color={COLORS.accent} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => onDelete(item.id)}
-                style={[styles.smallIconBtn, { backgroundColor: '#fee2e2' }]}
-              >
-                <Ionicons name="trash-outline" size={14} color={COLORS.danger} />
-              </TouchableOpacity>
-            </View>
-          )}
-
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => onAddToCart(item)}
@@ -95,8 +78,8 @@ export const MenuItemCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    margin: 6,
+    width: isTablet ? '31.3%' : '47.5%',
+    margin: 4,
     borderRadius: 14,
     borderWidth: 1,
     overflow: 'hidden',
@@ -137,43 +120,30 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 10,
-    flex: 1,
-    justifyContent: 'space-between',
   },
   name: {
     fontSize: 14,
     fontWeight: '700',
-    minHeight: 36,
+    minHeight: 34,
   },
   price: {
     fontSize: 14,
     fontWeight: '800',
-    marginVertical: 4,
+    marginVertical: 3,
   },
   actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 6,
-    gap: 6,
-  },
-  manageIcons: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  smallIconBtn: {
-    padding: 6,
-    borderRadius: 6,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: COLORS.primary,
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 8,
-    gap: 2,
-    marginLeft: 'auto',
+    gap: 4,
+    width: '100%',
   },
   addBtnText: {
     color: '#ffffff',

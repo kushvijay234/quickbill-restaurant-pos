@@ -1,81 +1,109 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { Badge } from '../../components/common/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { storageService } from '../../services/storageService';
+import { setApiBaseUrl, getApiBaseUrl } from '../../services/api';
+import { LOCAL_API_URL, CLOUD_API_URL, DEFAULT_API_URL, TRIAL_PERIOD_DAYS } from '../../constants/config';
 import { COLORS } from '../../constants/colors';
 
-export const LoginScreen = ({ route, navigation }) => {
+export const LoginScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const { login, tenantSlug } = useAuth();
+  const { login } = useAuth();
 
-  const activeSlug = route.params?.slug || tenantSlug || '';
-  const [username, setUsername] = useState('');
+  const [usernameOrEmail, setUsernameOrEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Server URL config
+  const [showServerConfig, setShowServerConfig] = useState(false);
+  const [customApiUrl, setCustomApiUrlState] = useState('');
+
+  useEffect(() => {
+    storageService.getCustomApiUrl().then((saved) => {
+      const active = saved || DEFAULT_API_URL;
+      setCustomApiUrlState(active);
+      setApiBaseUrl(active);
+    });
+  }, []);
+
   const handleLogin = async () => {
     setErrorMsg('');
-    if (!username.trim() || !password) {
-      setErrorMsg('Please enter both username and password');
+    const cleanIdentifier = usernameOrEmail.trim();
+    if (!cleanIdentifier || !password) {
+      setErrorMsg('Please enter your email/username and password');
       return;
     }
 
     try {
       setLoading(true);
-      await login(username.trim(), password, activeSlug);
-      // Navigation will be automatically updated by AppNavigator based on isAuthenticated state
+      await login(cleanIdentifier, password);
     } catch (e) {
-      setErrorMsg(e.message || 'Invalid username or password');
+      setErrorMsg(e.message || 'Invalid email or password');
     } finally {
       setLoading(false);
     }
   };
 
+  const applyServerPreset = async (url) => {
+    await storageService.setCustomApiUrl(url);
+    setApiBaseUrl(url);
+    setCustomApiUrlState(url);
+    setErrorMsg('');
+    Alert.alert('Server Selected', `Now connecting to: ${url}`);
+  };
+
+  const handleSaveCustomServer = async () => {
+    const trimmed = customApiUrl.trim();
+    if (trimmed) {
+      await storageService.setCustomApiUrl(trimmed);
+      setApiBaseUrl(trimmed);
+      setErrorMsg('');
+      Alert.alert('Updated', `API URL set to: ${trimmed}`);
+      setShowServerConfig(false);
+    }
+  };
+
+  const isLocalActive = customApiUrl === LOCAL_API_URL;
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardView}
       >
-        <ScrollView contentContainerStyle={styles.container}>
-          {/* Header */}
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          {/* Brand Header matching Web Frontend */}
           <View style={styles.brandContainer}>
             <View style={styles.brandIconWrapper}>
-              <Ionicons name="lock-closed" size={32} color="#ffffff" />
+              <Ionicons name="restaurant" size={32} color="#ffffff" />
             </View>
-            <Text style={[styles.brandTitle, { color: colors.text }]}>POS Sign In</Text>
-            <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>
-              Enter your Cashier or Admin credentials
+
+            <Text style={[styles.brandTitle, { color: colors.text }]}>
+              RESTO<Text style={{ color: COLORS.primary }}>BILL</Text>
             </Text>
 
-            {/* Restaurant Indicator */}
-            {activeSlug ? (
-              <View style={styles.tenantPill}>
-                <Text style={[styles.tenantPillText, { color: colors.textMuted }]}>Restaurant:</Text>
-                <Badge label={activeSlug} variant="role" size="sm" />
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('TenantSelect')}
-                  style={styles.switchTenantBtn}
-                >
-                  <Text style={[styles.switchTenantText, { color: COLORS.accent }]}>Switch</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
+            <Text style={[styles.brandTagline, { color: COLORS.primary }]}>
+              BILL. SERVE. GROW.
+            </Text>
+
+            <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>
+              Sign in to your restaurant workspace
+            </Text>
           </View>
 
           {/* Login Card */}
@@ -96,11 +124,15 @@ export const LoginScreen = ({ route, navigation }) => {
             ) : null}
 
             <Input
-              label="Username or Email"
-              placeholder="e.g. admin or cashier1"
-              value={username}
-              onChangeText={setUsername}
+              label="Email Address or Username"
+              placeholder="e.g. test or owner@restaurant.com"
+              value={usernameOrEmail}
+              onChangeText={(text) => {
+                setUsernameOrEmail(text);
+                if (errorMsg) setErrorMsg('');
+              }}
               autoCapitalize="none"
+              keyboardType="email-address"
               leftIcon={<Ionicons name="person-outline" size={18} color={colors.textMuted} />}
             />
 
@@ -108,10 +140,13 @@ export const LoginScreen = ({ route, navigation }) => {
               label="Password"
               placeholder="••••••••"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errorMsg) setErrorMsg('');
+              }}
               secureTextEntry={true}
               autoCapitalize="none"
-              leftIcon={<Ionicons name="key-outline" size={18} color={colors.textMuted} />}
+              leftIcon={<Ionicons name="lock-closed-outline" size={18} color={colors.textMuted} />}
             />
 
             <Button
@@ -121,6 +156,112 @@ export const LoginScreen = ({ route, navigation }) => {
               size="lg"
               style={styles.signInBtn}
             />
+
+            {/* Register Action */}
+            <View style={[styles.registerSection, { borderTopColor: colors.border }]}>
+              <Text style={[styles.registerPrompt, { color: colors.textMuted }]}>
+                New to QuickBill POS?
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('Register')}
+                style={[styles.registerBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#eef2ff', borderColor: '#c7d2fe' }]}
+              >
+                <Ionicons name="sparkles" size={16} color={COLORS.primary} />
+                <Text style={[styles.registerBtnText, { color: COLORS.primary }]}>
+                  Register Your Restaurant ({TRIAL_PERIOD_DAYS}-Day Free Trial)
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Server Environment Bar */}
+            <View style={[styles.serverEnvBar, { borderTopColor: colors.border }]}>
+              <View style={styles.serverStatusRow}>
+                <View
+                  style={[
+                    styles.statusDot,
+                    { backgroundColor: isLocalActive ? '#10b981' : '#3b82f6' },
+                  ]}
+                />
+                <Text style={[styles.serverStatusText, { color: colors.textMuted }]} numberOfLines={1}>
+                  {isLocalActive ? 'Local Backend (192.168.1.42:5000)' : 'Cloud Backend (Render)'}
+                </Text>
+                <TouchableOpacity onPress={() => setShowServerConfig((prev) => !prev)}>
+                  <Text style={[styles.changeLink, { color: COLORS.primary }]}>
+                    {showServerConfig ? 'Close' : 'Change'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {showServerConfig && (
+                <View
+                  style={[
+                    styles.serverConfigBox,
+                    { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' },
+                  ]}
+                >
+                  <Text style={[styles.presetLabel, { color: colors.textSecondary }]}>
+                    Quick Server Switch:
+                  </Text>
+                  <View style={styles.presetsRow}>
+                    <TouchableOpacity
+                      onPress={() => applyServerPreset(LOCAL_API_URL)}
+                      style={[
+                        styles.presetBtn,
+                        {
+                          backgroundColor: isLocalActive ? COLORS.primary : 'transparent',
+                          borderColor: isLocalActive ? COLORS.primary : colors.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.presetBtnText,
+                          { color: isLocalActive ? '#ffffff' : colors.text },
+                        ]}
+                      >
+                        Local Server
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => applyServerPreset(CLOUD_API_URL)}
+                      style={[
+                        styles.presetBtn,
+                        {
+                          backgroundColor: !isLocalActive ? COLORS.primary : 'transparent',
+                          borderColor: !isLocalActive ? COLORS.primary : colors.border,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.presetBtnText,
+                          { color: !isLocalActive ? '#ffffff' : colors.text },
+                        ]}
+                      >
+                        Render Cloud
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Input
+                    label="Custom API Endpoint"
+                    placeholder="http://192.168.x.x:5000/api"
+                    value={customApiUrl}
+                    onChangeText={setCustomApiUrlState}
+                    autoCapitalize="none"
+                    style={{ marginTop: 8 }}
+                  />
+                  <Button
+                    title="Apply Custom URL"
+                    variant="outline"
+                    size="sm"
+                    onPress={handleSaveCustomServer}
+                  />
+                </View>
+              )}
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -152,40 +293,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-    marginBottom: 14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
+    marginBottom: 16,
   },
   brandTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  brandTagline: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginTop: 2,
   },
   brandSubtitle: {
     fontSize: 13,
-    marginTop: 4,
-  },
-  tenantPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 14,
-    backgroundColor: 'rgba(148, 163, 184, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  tenantPillText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  switchTenantBtn: {
-    paddingHorizontal: 4,
-  },
-  switchTenantText: {
-    fontSize: 12,
-    fontWeight: '700',
+    marginTop: 6,
+    textAlign: 'center',
   },
   card: {
     borderRadius: 20,
@@ -193,8 +321,8 @@ const styles = StyleSheet.create({
     padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
     elevation: 4,
   },
   errorBanner: {
@@ -216,5 +344,82 @@ const styles = StyleSheet.create({
   },
   signInBtn: {
     marginTop: 8,
+  },
+  registerSection: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    alignItems: 'center',
+    gap: 8,
+  },
+  registerPrompt: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  registerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  registerBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  serverEnvBar: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+  },
+  serverStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  serverStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  changeLink: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  serverConfigBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 10,
+    gap: 8,
+  },
+  presetLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  presetsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  presetBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  presetBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

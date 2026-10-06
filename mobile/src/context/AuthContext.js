@@ -11,6 +11,7 @@ const AuthContext = createContext({
   isAuthenticated: false,
   isLoading: true,
   login: async () => {},
+  register: async () => {},
   logout: async () => {},
   setTenantSlug: async () => {},
   refreshProfile: async () => {},
@@ -67,6 +68,17 @@ export const AuthProvider = ({ children }) => {
     return response;
   };
 
+  const register = async (registrationData) => {
+    const response = await authService.register(registrationData);
+    setToken(response.token);
+    setUser(response.user);
+    if (response.tenant?.slug) {
+      setTenantSlugState(response.tenant.slug);
+    }
+    await refreshProfile();
+    return response;
+  };
+
   const logout = async () => {
     await authService.logout();
     setToken(null);
@@ -89,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!(token && user),
         isLoading,
         login,
+        register,
         logout,
         setTenantSlug,
         refreshProfile,

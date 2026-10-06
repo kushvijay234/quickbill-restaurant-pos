@@ -9,7 +9,7 @@ storageService.getCustomApiUrl().then((saved) => {
 });
 
 export const setApiBaseUrl = (url) => {
-  if (url) {
+  if (url && typeof url === 'string') {
     activeBaseUrl = url.replace(/\/+$/, '');
   } else {
     activeBaseUrl = DEFAULT_API_URL;
@@ -21,6 +21,7 @@ export const getApiBaseUrl = () => activeBaseUrl;
 const request = async (endpoint, options = {}) => {
   const token = await storageService.getToken();
   const tenantSlug = await storageService.getTenantSlug();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -32,11 +33,15 @@ const request = async (endpoint, options = {}) => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  if (tenantSlug) {
+  // Do not send arbitrary or stale X-Tenant-ID on login/registration endpoints
+  // Login will auto-route to the correct tenant from the user's credentials
+  const isAuthEndpoint =
+    cleanEndpoint.includes('/auth/login') || cleanEndpoint.includes('/saas/register');
+
+  if (tenantSlug && !isAuthEndpoint && !headers['X-Tenant-ID']) {
     headers['X-Tenant-ID'] = tenantSlug;
   }
 
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${activeBaseUrl}${cleanEndpoint}`;
 
   try {
@@ -46,9 +51,6 @@ const request = async (endpoint, options = {}) => {
     });
 
     if (response.status === 401) {
-      const isAuthEndpoint =
-        cleanEndpoint.includes('/auth/login') || cleanEndpoint.includes('/saas/register');
-
       if (!isAuthEndpoint) {
         // Clear expired session
         await storageService.setToken(null);
@@ -68,6 +70,12 @@ const request = async (endpoint, options = {}) => {
       const errorData = await response.json().catch(() => ({
         message: response.statusText || `Request failed with status ${response.status}`,
       }));
+
+      // Self-heal: If an old or invalid tenant slug was cached, clear it
+      if (response.status === 404 && errorData.code === 'TENANT_NOT_FOUND') {
+        await storageService.setTenantSlug(null);
+      }
+
       const error = new Error(errorData.message || `API error: ${response.status}`);
       error.status = response.status;
       error.code = errorData.code;

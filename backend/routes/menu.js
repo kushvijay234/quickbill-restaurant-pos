@@ -80,7 +80,7 @@ router.post('/', authorize('admin', 'staff'), async (req, res) => {
 // @desc    Update a menu item's name and/or price variants
 // @route   PUT /api/menu/:id
 router.put('/:id', authorize('admin', 'staff'), async (req, res) => {
-    const { name, variants } = req.body;
+    const { name, variants, imageUrl } = req.body;
     try {
         const MenuItem = getMenuItem(req);
         let menuItem = await MenuItem.findById(req.params.id);
@@ -90,6 +90,9 @@ router.put('/:id', authorize('admin', 'staff'), async (req, res) => {
 
         if (name !== undefined) {
             menuItem.name = name;
+        }
+        if (imageUrl !== undefined) {
+            menuItem.imageUrl = imageUrl;
         }
         if (variants !== undefined) {
             if (!Array.isArray(variants) || variants.length === 0) {

@@ -14,7 +14,7 @@ export const orderService = {
   async getOrders(params = {}) {
     const query = new URLSearchParams();
     if (params.page) query.append('page', params.page);
-    if (params.limit) query.append('limit', params.limit);
+    query.append('limit', params.limit || '100');
     if (params.startDate) query.append('startDate', params.startDate);
     if (params.endDate) query.append('endDate', params.endDate);
     if (params.search) query.append('search', params.search);

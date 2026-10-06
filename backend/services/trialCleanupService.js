@@ -3,7 +3,7 @@ const { getTenantConnection, closeTenantConnection } = require('../config/tenant
 
 /**
  * Periodically prunes heavy temporary operational data for free trial tenants
- * whose 14-day trial ended over 30 days ago and who never subscribed.
+ * whose 3-day trial ended over 30 days ago and who never subscribed.
  * 
  * CRITICAL: The Tenant master record (email, phone, credentials, slug) is NEVER deleted,
  * so the user can never claim another free trial, and can log in at any time in the future

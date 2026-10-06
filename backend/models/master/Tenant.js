@@ -72,7 +72,10 @@ const TenantSchema = new mongoose.Schema({
   },
   trialEndsAt: {
     type: Date,
-    default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days trial
+    default: () => {
+      const trialDays = parseInt(process.env.TRIAL_PERIOD_DAYS, 10) || 3;
+      return new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000); // 3 days trial
+    }
   },
   dataPruned: {
     type: Boolean,

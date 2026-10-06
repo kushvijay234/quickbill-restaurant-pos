@@ -141,7 +141,7 @@ const Login: React.FC = () => {
               onClick={() => setShowRegisterModal(true)}
               className="w-full py-2 px-4 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 transition border border-indigo-200 dark:border-indigo-800"
             >
-              Register Your Restaurant (14-Day Free Trial)
+              Register Your Restaurant (3-Day Free Trial)
             </button>
           </div>
         </div>
