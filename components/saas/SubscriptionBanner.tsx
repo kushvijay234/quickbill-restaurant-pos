@@ -49,7 +49,7 @@ const SubscriptionBanner: React.FC<SubscriptionBannerProps> = ({ onOpenPlans, re
         <span>
           {isPastDue
             ? 'Your trial period has ended. Orders will be locked soon.'
-            : `You have ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining on your 14-day trial.`}
+            : `You have ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} remaining on your 3-day trial.`}
         </span>
         <span className="hidden sm:inline opacity-90 font-medium">
           • {tenant.name}

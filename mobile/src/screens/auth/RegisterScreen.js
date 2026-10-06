@@ -16,6 +16,7 @@ import { Input } from '../../components/common/Input';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { COLORS } from '../../constants/colors';
+import { TRIAL_PERIOD_DAYS } from '../../constants/config';
 
 const COUNTRY_OPTIONS = [
   { country: 'India', currency: 'INR', symbol: '₹', phoneCode: '+91', flag: '🇮🇳', phonePlaceholder: '9876543210' },
@@ -99,7 +100,7 @@ export const RegisterScreen = ({ navigation }) => {
 
       Alert.alert(
         'Registration Successful! 🎉',
-        `Welcome to QuickBill! Your 14-day free trial for "${cleanRestName}" is now active.`,
+        `Welcome to QuickBill! Your ${TRIAL_PERIOD_DAYS}-day free trial for "${cleanRestName}" is now active.`,
         [{ text: 'Get Started' }]
       );
     } catch (err) {
@@ -153,11 +154,11 @@ export const RegisterScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {/* 14-Day Free Trial Banner */}
+          {/* Free Trial Banner */}
           <View style={styles.trialBanner}>
             <Ionicons name="sparkles" size={20} color="#4338ca" />
             <View style={{ flex: 1 }}>
-              <Text style={styles.trialTitle}>14-Day Free Trial Included</Text>
+              <Text style={styles.trialTitle}>{TRIAL_PERIOD_DAYS}-Day Free Trial Included</Text>
               <Text style={styles.trialSub}>Full POS access • No credit card required</Text>
             </View>
           </View>
@@ -338,7 +339,7 @@ export const RegisterScreen = ({ navigation }) => {
 
             {/* Submit Button */}
             <Button
-              title="Start 14-Day Free Trial"
+              title={`Start ${TRIAL_PERIOD_DAYS}-Day Free Trial`}
               onPress={handleRegister}
               loading={loading}
               size="lg"

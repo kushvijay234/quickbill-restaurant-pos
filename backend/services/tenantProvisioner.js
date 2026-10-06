@@ -163,8 +163,9 @@ async function provisionTenant({
     dbName = `qb_${normalizedSlug.replace(/-/g, '_')}_${Math.floor(10 + Math.random() * 90)}`.slice(0, 38);
   }
 
-  // 2. 14-day free trial on Starter plan
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  // 2. 3-day free trial on Starter plan
+  const trialDays = parseInt(process.env.TRIAL_PERIOD_DAYS, 10) || 3;
+  const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000);
 
   // 3. Username sanitization
   const cleanUsername = (ownerUsername || ownerEmail.split('@')[0])

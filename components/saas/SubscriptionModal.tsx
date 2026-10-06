@@ -170,7 +170,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
               <div className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 mt-0.5">
                 <span>{currentSub.tenant.name}</span>
                 <span className="text-xs font-normal px-2 py-0.5 rounded bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 capitalize">
-                  {currentSub.tenant.status === 'trialing' ? `14-Day Free Trial (${currentSub.daysRemaining} days left)` : `${currentSub.tenant.activePlan} tier`}
+                  {currentSub.tenant.status === 'trialing' ? `3-Day Free Trial (${currentSub.daysRemaining} days left)` : `${currentSub.tenant.activePlan} tier`}
                 </span>
               </div>
             </div>

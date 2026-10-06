@@ -157,7 +157,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
               Register Your Restaurant
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Start your 14-day free trial. Instant setup for billing and orders.
+              Start your 3-day free trial. Instant setup for billing and orders.
             </p>
           </div>
           <button
@@ -425,7 +425,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
             </button>
           </div>
           <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-            No credit card required. Free 14-day trial with full billing features.
+            No credit card required. Free 3-day trial with full billing features.
           </p>
         </form>
       </div>

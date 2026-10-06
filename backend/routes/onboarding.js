@@ -11,7 +11,7 @@ const registerLimiter = rateLimit({
   message: { message: 'Too many restaurant registrations from this IP, please try again later.' }
 });
 
-// @desc    Register a new restaurant and start 14-day free trial (URL slug is auto-generated)
+// @desc    Register a new restaurant and start 3-day free trial (URL slug is auto-generated)
 // @route   POST /api/saas/register
 router.post('/register', registerLimiter, async (req, res) => {
   const {

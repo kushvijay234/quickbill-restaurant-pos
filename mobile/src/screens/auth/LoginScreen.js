@@ -17,7 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { storageService } from '../../services/storageService';
 import { setApiBaseUrl, getApiBaseUrl } from '../../services/api';
-import { LOCAL_API_URL, CLOUD_API_URL, DEFAULT_API_URL } from '../../constants/config';
+import { LOCAL_API_URL, CLOUD_API_URL, DEFAULT_API_URL, TRIAL_PERIOD_DAYS } from '../../constants/config';
 import { COLORS } from '../../constants/colors';
 
 export const LoginScreen = ({ navigation }) => {
@@ -169,7 +169,7 @@ export const LoginScreen = ({ navigation }) => {
               >
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
                 <Text style={[styles.registerBtnText, { color: COLORS.primary }]}>
-                  Register Your Restaurant (14-Day Free Trial)
+                  Register Your Restaurant ({TRIAL_PERIOD_DAYS}-Day Free Trial)
                 </Text>
               </TouchableOpacity>
             </View>

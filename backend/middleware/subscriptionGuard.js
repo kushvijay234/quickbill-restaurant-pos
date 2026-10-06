@@ -31,7 +31,7 @@ async function subscriptionGuard(req, res, next) {
         if (isMutation) {
           return res.status(403).json({
             code: 'TRIAL_EXPIRED',
-            message: 'Your 14-day free trial has expired. Please choose a subscription plan to continue creating orders and updating menus.',
+            message: 'Your 3-day free trial has expired. Please choose a subscription plan to continue creating orders and updating menus.',
             trialEnded: true
           });
         }

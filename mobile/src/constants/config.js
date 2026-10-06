@@ -11,3 +11,5 @@ export const DEFAULT_API_URL = typeof __DEV__ !== 'undefined' && __DEV__
 export const LOCAL_DEV_API_URL = Platform.OS === 'android'
   ? 'http://10.0.2.2:5000/api'
   : 'http://localhost:5000/api';
+
+export const TRIAL_PERIOD_DAYS = 3;

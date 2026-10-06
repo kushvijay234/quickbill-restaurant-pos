@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { subscriptionService } from '../../services/subscriptionService';
 import { COLORS } from '../../constants/colors';
+import { TRIAL_PERIOD_DAYS } from '../../constants/config';
 
 export const SubscriptionBanner = ({ onOpenSubscription, refreshTrigger }) => {
   const [subData, setSubData] = useState(null);
@@ -20,23 +21,29 @@ export const SubscriptionBanner = ({ onOpenSubscription, refreshTrigger }) => {
 
   // Only display if trialing, expiring soon, or non-active
   const isTrial = status === 'trialing';
-  const isExpiring = typeof daysRemaining === 'number' && daysRemaining <= 7;
-  const isPastDue = status === 'past_due' || status === 'suspended';
+  const isExpiring = typeof daysRemaining === 'number' && daysRemaining <= 3;
+  const isPastDue = status === 'past_due' || status === 'suspended' || (isTrial && typeof daysRemaining === 'number' && daysRemaining <= 0);
 
   if (!isTrial && !isExpiring && !isPastDue) return null;
 
   let bg = '#eff6ff';
   let textCol = '#1e40af';
-  let message = `Trial Plan • ${daysRemaining ?? 14} days remaining`;
+  let message = `Trial Plan • ${daysRemaining ?? TRIAL_PERIOD_DAYS} days remaining`;
 
   if (isPastDue) {
     bg = '#fee2e2';
     textCol = '#b91c1c';
-    message = 'Subscription past due. Please renew plan.';
-  } else if (isExpiring) {
+    message = isTrial
+      ? 'Trial expired. Please choose a plan to continue.'
+      : 'Subscription past due. Please renew plan.';
+  } else if (isTrial && typeof daysRemaining === 'number' && daysRemaining <= 1) {
     bg = '#fef3c7';
     textCol = '#92400e';
-    message = `Plan expires in ${daysRemaining} days. Tap to upgrade.`;
+    message = `Trial expires in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. Tap to upgrade.`;
+  } else if (!isTrial && isExpiring) {
+    bg = '#fef3c7';
+    textCol = '#92400e';
+    message = `Plan expires in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}. Tap to upgrade.`;
   }
 
   return (
