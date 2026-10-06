@@ -219,6 +219,47 @@ export const RestaurantProfileScreen = ({ navigation }) => {
           />
         </View>
 
+        {/* LOGGED IN ACCOUNT / USER DETAILS */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Logged-in Account</Text>
+
+          <View
+            style={[
+              styles.userAccountRow,
+              {
+                backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc',
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <View style={styles.userAvatar}>
+              <Ionicons name="person" size={20} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Text style={[styles.accountUserName, { color: colors.text }]}>
+                  {user?.username || user?.name || 'Staff Member'}
+                </Text>
+                {user?.role ? (
+                  <Badge
+                    label={user.role.toUpperCase()}
+                    variant={user.role === 'admin' ? 'role' : 'info'}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
+              <Text style={[styles.accountUserEmail, { color: colors.textMuted }]}>
+                {user?.email || 'Logged in'}
+              </Text>
+              {tenantSlug ? (
+                <Text style={[styles.accountTenantSlug, { color: colors.textMuted }]}>
+                  Restaurant ID: {tenantSlug}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </View>
+
         {/* TAX & CURRENCY */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>Tax & Currency Settings</Text>
@@ -444,18 +485,32 @@ const styles = StyleSheet.create({
   saveBtn: {
     marginTop: 4,
   },
-  logoutBtn: {
+  userAccountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    marginTop: 4,
+    gap: 12,
   },
-  logoutBtnText: {
-    fontSize: 14,
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(5, 150, 105, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accountUserName: {
+    fontSize: 15,
     fontWeight: '800',
+  },
+  accountUserEmail: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  accountTenantSlug: {
+    fontSize: 11,
+    marginTop: 2,
   },
 });
