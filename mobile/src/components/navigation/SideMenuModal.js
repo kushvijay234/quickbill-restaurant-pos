@@ -175,6 +175,18 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => handleNav('MenuManagement')}
+              style={[styles.menuItem, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}
+            >
+              <View style={[styles.menuIconWrap, { backgroundColor: '#fef3c7' }]}>
+                <Ionicons name="fast-food-outline" size={18} color="#d97706" />
+              </View>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Update Menu</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+
             {isAdmin && (
               <>
                 <TouchableOpacity

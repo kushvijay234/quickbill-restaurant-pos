@@ -10,6 +10,7 @@ import { StaffManagementScreen } from '../screens/admin/StaffManagementScreen';
 import { AuditLogsScreen } from '../screens/admin/AuditLogsScreen';
 import { RestaurantProfileScreen } from '../screens/profile/RestaurantProfileScreen';
 import { SubscriptionScreen } from '../screens/subscription/SubscriptionScreen';
+import { MenuManagementScreen } from '../screens/menu/MenuManagementScreen';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { COLORS } from '../constants/colors';
@@ -67,6 +68,7 @@ export const AppNavigator = () => {
             <RootStack.Screen name="Settings" component={RestaurantProfileScreen} />
             <RootStack.Screen name="Subscription" component={SubscriptionScreen} />
             <RootStack.Screen name="PlanAndBilling" component={SubscriptionScreen} />
+            <RootStack.Screen name="MenuManagement" component={MenuManagementScreen} />
           </RootStack.Group>
         )}
       </RootStack.Navigator>

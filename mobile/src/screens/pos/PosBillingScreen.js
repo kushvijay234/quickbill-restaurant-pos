@@ -15,10 +15,8 @@ import { SubscriptionBanner } from '../../components/saas/SubscriptionBanner';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { MenuItemCard } from '../../menu/MenuItemCard';
-import { MenuCategoryFilter } from '../../menu/MenuCategoryFilter';
 import { VariantPickerModal } from '../../menu/VariantPickerModal';
 import { AddMenuItemModal } from '../../menu/AddMenuItemModal';
-import { EditMenuItemModal } from '../../menu/EditMenuItemModal';
 import { CartItemRow } from '../../components/cart/CartItemRow';
 import { CustomerInputForm } from '../../components/cart/CustomerInputForm';
 import { PaymentModal } from '../../components/orders/PaymentModal';
@@ -58,12 +56,10 @@ export const PosBillingScreen = ({ navigation }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Modals state
   const [variantModalItem, setVariantModalItem] = useState(null);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [completedOrder, setCompletedOrder] = useState(null);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
@@ -87,54 +83,23 @@ export const PosBillingScreen = ({ navigation }) => {
     fetchMenu();
   }, [fetchMenu]);
 
-  // Derive categories from item names or standard tags
-  const categories = useMemo(() => {
-    const set = new Set(['All']);
-    const items = Array.isArray(menuItems) ? menuItems : [];
-    items.forEach((it) => {
-      if (!it || !it.name) return;
-      // Categorize by first word or keywords if category isn't explicit
-      const name = String(it.name || '').toLowerCase();
-      if (name.includes('pizza')) set.add('Pizzas');
-      else if (name.includes('burger')) set.add('Burgers');
-      else if (name.includes('dosa') || name.includes('idli')) set.add('South Indian');
-      else if (name.includes('coffee') || name.includes('tea') || name.includes('shake'))
-        set.add('Beverages');
-      else if (name.includes('rice') || name.includes('biryani') || name.includes('curry'))
-        set.add('Meals');
-      else set.add('Specials');
-    });
-    return Array.from(set);
-  }, [menuItems]);
-
-  // Filtered menu items based on search and category
+  // Filtered menu items based on search query
   const filteredItems = useMemo(() => {
     const items = Array.isArray(menuItems) ? menuItems : [];
+    if (!searchQuery.trim()) return items;
+    const query = searchQuery.toLowerCase().trim();
     return items.filter((item) => {
       if (!item) return false;
       const itemName = String(item.name || '').toLowerCase();
-      const query = String(searchQuery || '').toLowerCase();
-      const matchSearch =
-        itemName.includes(query) ||
-        (Array.isArray(item.variants) &&
-          item.variants.some((v) =>
-            String(v?.name || '').toLowerCase().includes(query)
-          ));
-
-      if (!matchSearch) return false;
-      if (selectedCategory === 'All') return true;
-
-      if (selectedCategory === 'Pizzas') return itemName.includes('pizza');
-      if (selectedCategory === 'Burgers') return itemName.includes('burger');
-      if (selectedCategory === 'South Indian')
-        return itemName.includes('dosa') || itemName.includes('idli');
-      if (selectedCategory === 'Beverages')
-        return itemName.includes('coffee') || itemName.includes('tea') || itemName.includes('shake');
-      if (selectedCategory === 'Meals')
-        return itemName.includes('rice') || itemName.includes('biryani') || itemName.includes('curry');
-      return true;
+      const matchName = itemName.includes(query);
+      const matchVariant =
+        Array.isArray(item.variants) &&
+        item.variants.some((v) =>
+          String(v?.name || '').toLowerCase().includes(query)
+        );
+      return matchName || matchVariant;
     });
-  }, [menuItems, searchQuery, selectedCategory]);
+  }, [menuItems, searchQuery]);
 
   const handleCardAdd = (item) => {
     if (!item) return;
@@ -151,38 +116,6 @@ export const PosBillingScreen = ({ navigation }) => {
     if (created) {
       setMenuItems((prev) => [created, ...(Array.isArray(prev) ? prev : [])]);
     }
-  };
-
-  const handleUpdateItemSubmit = async (updatedItemData) => {
-    const targetId = updatedItemData?.id || updatedItemData?._id;
-    const updated = await menuService.updateMenuItem(targetId, updatedItemData);
-    if (updated) {
-      setMenuItems((prev) =>
-        (Array.isArray(prev) ? prev : []).map((it) =>
-          ((it?.id || it?._id) === (updated?.id || updated?._id) ? updated : it)
-        )
-      );
-    }
-  };
-
-  const handleDeleteItem = async (itemId) => {
-    Alert.alert('Delete Menu Item', 'Are you sure you want to remove this item?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await menuService.deleteMenuItem(itemId);
-            setMenuItems((prev) =>
-              (Array.isArray(prev) ? prev : []).filter((it) => (it?.id || it?._id) !== itemId)
-            );
-          } catch (e) {
-            Alert.alert('Error', e.message || 'Could not delete item');
-          }
-        },
-      },
-    ]);
   };
 
   const handleConfirmOrder = async (paymentMethod) => {
@@ -257,13 +190,6 @@ export const PosBillingScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Horizontal Category Chips */}
-          <MenuCategoryFilter
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
-
           {/* Items Grid */}
           <FlatList
             data={filteredItems}
@@ -276,9 +202,6 @@ export const PosBillingScreen = ({ navigation }) => {
                 item={item}
                 currency={currency}
                 onAddToCart={handleCardAdd}
-                onEdit={(it) => setEditingItem(it)}
-                onDelete={handleDeleteItem}
-                canManage={true}
               />
             )}
             contentContainerStyle={styles.listContent}
@@ -442,13 +365,6 @@ export const PosBillingScreen = ({ navigation }) => {
         visible={showAddItemModal}
         onClose={() => setShowAddItemModal(false)}
         onAdd={handleAddItemSubmit}
-      />
-
-      <EditMenuItemModal
-        visible={!!editingItem}
-        onClose={() => setEditingItem(null)}
-        item={editingItem}
-        onUpdate={handleUpdateItemSubmit}
       />
 
       <PaymentModal

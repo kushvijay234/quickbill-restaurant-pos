@@ -20,8 +20,8 @@ import { CURRENCIES } from '../../constants/currencies';
 import { COLORS } from '../../constants/colors';
 
 export const RestaurantProfileScreen = ({ navigation }) => {
-  const { colors, isDark, toggleTheme } = useTheme();
-  const { user, profile, refreshProfile, logout, tenantSlug } = useAuth();
+  const { colors, isDark } = useTheme();
+  const { user, profile, refreshProfile, tenantSlug } = useAuth();
 
   const [restaurantName, setRestaurantName] = useState('');
   const [address, setAddress] = useState('');
@@ -91,13 +91,6 @@ export const RestaurantProfileScreen = ({ navigation }) => {
     }
   };
 
-  const handleLogoutPress = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to end your POS session?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: logout },
-    ]);
-  };
-
   const planName = subData?.plan?.name || subData?.tenant?.activePlan?.toUpperCase() || 'STARTER';
   const daysLeft = subData?.daysRemaining;
   const planStatus = subData?.tenant?.status === 'active' ? 'Active' : 'Trial';
@@ -109,18 +102,6 @@ export const RestaurantProfileScreen = ({ navigation }) => {
         title="Settings & Account"
         showBack={navigation.canGoBack?.() || false}
         leftIcon="settings-outline"
-        rightAction={
-          <TouchableOpacity
-            onPress={toggleTheme}
-            style={[styles.themeBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9' }]}
-          >
-            <Ionicons
-              name={isDark ? 'sunny-outline' : 'moon-outline'}
-              size={18}
-              color={isDark ? '#f59e0b' : '#475569'}
-            />
-          </TouchableOpacity>
-        }
       />
 
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -303,16 +284,6 @@ export const RestaurantProfileScreen = ({ navigation }) => {
           size="lg"
           style={styles.saveBtn}
         />
-
-        {/* SIGN OUT BUTTON */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleLogoutPress}
-          style={[styles.logoutBtn, { borderColor: '#fca5a5', backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2' }]}
-        >
-          <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-          <Text style={[styles.logoutBtnText, { color: COLORS.danger }]}>Sign Out</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );

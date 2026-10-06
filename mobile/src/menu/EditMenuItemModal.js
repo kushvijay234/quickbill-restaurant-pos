@@ -8,14 +8,16 @@ import { useTheme } from '../context/ThemeContext';
 import { COLORS } from '../constants/colors';
 
 export const EditMenuItemModal = ({ visible, onClose, item, onUpdate }) => {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [name, setName] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (item) {
       setName(item.name || '');
+      setImageUrl(item.imageUrl || '');
       setVariants(
         (item.variants || []).map((v) => ({
           name: v.name,
@@ -65,6 +67,7 @@ export const EditMenuItemModal = ({ visible, onClose, item, onUpdate }) => {
       await onUpdate({
         ...item,
         name: name.trim(),
+        imageUrl: imageUrl.trim() || item.imageUrl,
         variants: cleanVariants,
       });
       onClose();
@@ -83,6 +86,13 @@ export const EditMenuItemModal = ({ visible, onClose, item, onUpdate }) => {
           value={name}
           onChangeText={setName}
           placeholder="Menu Item Name"
+        />
+
+        <Input
+          label="Image URL (Optional)"
+          value={imageUrl}
+          onChangeText={setImageUrl}
+          placeholder="https://example.com/image.jpg"
         />
 
         <View style={styles.variantsHeader}>
