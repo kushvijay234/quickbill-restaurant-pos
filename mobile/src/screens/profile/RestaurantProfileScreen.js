@@ -311,7 +311,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
           style={[styles.logoutBtn, { borderColor: '#fca5a5', backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#fef2f2' }]}
         >
           <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-          <Text style={[styles.logoutBtnText, { color: COLORS.danger }]}>Sign Out of POS</Text>
+          <Text style={[styles.logoutBtnText, { color: COLORS.danger }]}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

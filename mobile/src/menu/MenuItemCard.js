@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../constants/currencies';
 import { COLORS } from '../constants/colors';
+
+const { width } = Dimensions.get('window');
+const isTablet = width >= 768;
 
 export const MenuItemCard = ({
   item,
@@ -95,8 +98,8 @@ export const MenuItemCard = ({
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    margin: 6,
+    width: isTablet ? '31.3%' : '47.5%',
+    margin: 4,
     borderRadius: 14,
     borderWidth: 1,
     overflow: 'hidden',
@@ -137,24 +140,22 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 10,
-    flex: 1,
-    justifyContent: 'space-between',
   },
   name: {
     fontSize: 14,
     fontWeight: '700',
-    minHeight: 36,
+    minHeight: 34,
   },
   price: {
     fontSize: 14,
     fontWeight: '800',
-    marginVertical: 4,
+    marginVertical: 3,
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
+    marginTop: 4,
     gap: 6,
   },
   manageIcons: {

@@ -89,7 +89,7 @@ export const PastOrdersScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <Header onOpenProfile={() => navigation.navigate('Settings')} />
+      <Header />
 
       <View style={styles.container}>
         {/* Search Input */}

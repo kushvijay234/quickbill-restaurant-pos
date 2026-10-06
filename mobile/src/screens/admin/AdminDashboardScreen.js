@@ -109,7 +109,7 @@ export const AdminDashboardScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <Header onOpenProfile={() => navigation.navigate('Settings')} />
+      <Header />
 
       <ScrollView
         contentContainerStyle={styles.container}

@@ -1,110 +1,95 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, StatusBar, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Badge } from './common/Badge';
+import { SideMenuModal } from './navigation/SideMenuModal';
 import { COLORS } from '../constants/colors';
 
-export const Header = ({ onOpenProfile, onOpenSubscription }) => {
+export const Header = ({ onAddItem, rightAction }) => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
-  const { user, profile, tenantSlug, logout } = useAuth();
-  const { isDark, toggleTheme, colors } = useTheme();
+  const { user, profile, tenantSlug } = useAuth();
+  const { colors } = useTheme();
+  const [sideMenuVisible, setSideMenuVisible] = useState(false);
 
   const topInset = Platform.OS === 'android'
     ? Math.max(insets.top, StatusBar.currentHeight || 24)
     : insets.top;
 
-  const handleLogoutPress = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to end your POS session?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: logout },
-    ]);
-  };
-
   const displayName = profile?.restaurantName || 'QuickBill POS';
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingTop: Math.max(topInset, 12) + 6,
-          backgroundColor: colors.surface,
-          borderBottomColor: colors.border,
-        },
-      ]}
-    >
-      <View style={styles.leftRow}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={onOpenProfile}
-          style={styles.profileTrigger}
-        >
-          <View style={styles.brandIcon}>
-            <Ionicons name="restaurant" size={18} color="#ffffff" />
-          </View>
-          <View>
-            <Text style={[styles.restaurantName, { color: colors.text }]} numberOfLines={1}>
-              {displayName}
-            </Text>
-            <View style={styles.badgeRow}>
-              {tenantSlug ? (
-                <Text style={[styles.slugText, { color: colors.textMuted }]}>
-                  {tenantSlug}
-                </Text>
-              ) : null}
-              {user?.role ? (
-                <Badge
-                  label={user.role}
-                  variant={user.role === 'admin' ? 'role' : 'info'}
-                  size="sm"
-                />
-              ) : null}
+    <>
+      <View
+        style={[
+          styles.container,
+          {
+            paddingTop: Math.max(topInset, 12) + 6,
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
+        {/* Left: App/Restaurant Icon that opens Side Menu */}
+        <View style={styles.leftRow}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setSideMenuVisible(true)}
+            style={styles.profileTrigger}
+          >
+            <View style={styles.brandIcon}>
+              <Ionicons name="menu" size={20} color="#ffffff" />
             </View>
-          </View>
-        </TouchableOpacity>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={[styles.restaurantName, { color: colors.text }]} numberOfLines={1}>
+                  {displayName}
+                </Text>
+                <Ionicons name="chevron-down" size={13} color={colors.textMuted} />
+              </View>
+              <View style={styles.badgeRow}>
+                {tenantSlug ? (
+                  <Text style={[styles.slugText, { color: colors.textMuted }]} numberOfLines={1}>
+                    {tenantSlug}
+                  </Text>
+                ) : null}
+                {user?.role ? (
+                  <Badge
+                    label={user.role}
+                    variant={user.role === 'admin' ? 'role' : 'info'}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Right: Add Item button or custom right action */}
+        <View style={styles.rightRow}>
+          {rightAction ? (
+            rightAction
+          ) : onAddItem ? (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={onAddItem}
+              style={styles.addItemBtn}
+            >
+              <Ionicons name="add" size={18} color="#ffffff" />
+              <Text style={styles.addItemBtnText}>Add Item</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
-      <View style={styles.rightRow}>
-        {/* Plan & Billing Shortcut */}
-        <TouchableOpacity
-          onPress={() => {
-            if (onOpenSubscription) {
-              onOpenSubscription();
-            } else {
-              navigation.navigate('Subscription');
-            }
-          }}
-          style={[styles.iconButton, { backgroundColor: isDark ? 'rgba(79, 70, 229, 0.2)' : '#eef2ff' }]}
-        >
-          <Ionicons name="sparkles" size={18} color={COLORS.primary} />
-        </TouchableOpacity>
-
-        {/* Dark / Light Mode Toggle */}
-        <TouchableOpacity
-          onPress={toggleTheme}
-          style={[styles.iconButton, { backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9' }]}
-        >
-          <Ionicons
-            name={isDark ? 'sunny-outline' : 'moon-outline'}
-            size={20}
-            color={isDark ? '#f59e0b' : '#475569'}
-          />
-        </TouchableOpacity>
-
-        {/* Logout */}
-        <TouchableOpacity
-          onPress={handleLogoutPress}
-          style={[styles.iconButton, { backgroundColor: '#fee2e2' }]}
-        >
-          <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-        </TouchableOpacity>
-      </View>
-    </View>
+      {/* Side Menu Drawer */}
+      <SideMenuModal
+        visible={sideMenuVisible}
+        onClose={() => setSideMenuVisible(false)}
+      />
+    </>
   );
 };
 
@@ -139,7 +124,7 @@ const styles = StyleSheet.create({
   restaurantName: {
     fontSize: 16,
     fontWeight: '800',
-    maxWidth: 220,
+    maxWidth: 200,
   },
   badgeRow: {
     flexDirection: 'row',
@@ -154,13 +139,25 @@ const styles = StyleSheet.create({
   rightRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'flex-end',
   },
-  iconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
+  addItemBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    gap: 4,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  addItemBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

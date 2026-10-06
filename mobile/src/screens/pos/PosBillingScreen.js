@@ -223,8 +223,10 @@ export const PosBillingScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <Header onOpenProfile={() => navigation.navigate('Settings')} />
+      {/* Header with Side Menu trigger and Add Item button on top right */}
+      <Header
+        onAddItem={() => setShowAddItemModal(true)}
+      />
 
       {/* Subscription notice if trialing */}
       <SubscriptionBanner onOpenSubscription={() => navigation.navigate('Subscription')} />
@@ -267,6 +269,7 @@ export const PosBillingScreen = ({ navigation }) => {
             data={filteredItems}
             key={numColumns}
             numColumns={numColumns}
+            columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
             keyExtractor={(item, index) => item?.id || item?._id || String(index)}
             renderItem={({ item }) => (
               <MenuItemCard
@@ -275,7 +278,7 @@ export const PosBillingScreen = ({ navigation }) => {
                 onAddToCart={handleCardAdd}
                 onEdit={(it) => setEditingItem(it)}
                 onDelete={handleDeleteItem}
-                canManage={canManageMenu}
+                canManage={true}
               />
             )}
             contentContainerStyle={styles.listContent}
@@ -513,6 +516,11 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 10,
     paddingBottom: 90,
+  },
+  columnWrapper: {
+    justifyContent: 'flex-start',
+    gap: 8,
+    paddingHorizontal: 2,
   },
   emptyContainer: {
     alignItems: 'center',
