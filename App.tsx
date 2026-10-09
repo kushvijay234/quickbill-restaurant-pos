@@ -192,7 +192,6 @@ useEffect(() => {
   const handleToggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    logger.info('Theme changed', { theme: newTheme });
   };
 
   const addToOrder = (itemToAdd: IMenuItem, selectedVariant: IMenuItemVariant) => {

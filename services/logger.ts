@@ -27,7 +27,10 @@ const sendLog = (payload: LogPayload) => {
         case 'error': console.error(prefix, payload.message, payload.meta || '', payload.stack || ''); break;
     }
 
-    // 2. Prevent infinite recursion if logging endpoint itself fails
+    // 2. Only persist errors and warnings to remote MongoDB database; info logs stay in console
+    if (payload.level === 'info') return;
+
+    // 3. Prevent infinite recursion if logging endpoint itself fails
     if (isDispatching) return;
     if (payload.endpoint && payload.endpoint.includes('/logs')) return;
 
