@@ -1,5 +1,6 @@
 import { DEFAULT_API_URL } from '../constants/config';
 import { storageService } from './storageService';
+import { logger } from './logger';
 
 let activeBaseUrl = DEFAULT_API_URL;
 
@@ -90,6 +91,22 @@ const request = async (endpoint, options = {}) => {
     return await response.json();
   } catch (error) {
     console.error(`[Mobile API] Error on ${options.method || 'GET'} ${cleanEndpoint}:`, error.message);
+
+    if (!cleanEndpoint.includes('/logs')) {
+      logger.error(
+        `Mobile API error: ${options.method || 'GET'} ${cleanEndpoint}`,
+        {
+          endpoint: cleanEndpoint,
+          statusCode: error.status,
+          code: error.code,
+          errorData: error.data,
+        },
+        error,
+        error.status,
+        cleanEndpoint
+      );
+    }
+
     throw error;
   }
 };

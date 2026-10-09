@@ -26,8 +26,8 @@ export const SubscriptionBanner = ({ onOpenSubscription, refreshTrigger }) => {
 
   if (!isTrial && !isExpiring && !isPastDue) return null;
 
-  let bg = '#eff6ff';
-  let textCol = '#1e40af';
+  let bg = '#f0fdf4';
+  let textCol = '#15803d';
   let message = `Trial Plan • ${daysRemaining ?? TRIAL_PERIOD_DAYS} days remaining`;
 
   if (isPastDue) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ISuperAdminUser, ISuperAdminStats, ISuperAdminTenant } from '../../types';
+import FastBilloLogo from '../common/FastBilloLogo';
 
 interface SuperAdminPortalProps {
   user: ISuperAdminUser;
@@ -216,11 +217,12 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
       {/* SuperAdmin Top Navigation Bar */}
       <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between shadow-xl">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <FastBilloLogo size={32} showBrandText={false} />
             <span className="text-xl font-black tracking-tight text-white">
-              RESTO<span className="text-indigo-400">BILL</span>
+              FAST<span className="text-emerald-400">BILLO</span>
             </span>
-            <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-widest bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-md shadow-sm">
+            <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-widest bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-md shadow-sm">
               SUPERADMIN
             </span>
           </div>
@@ -478,7 +480,7 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
 
           <div className="flex items-center justify-between text-xs text-gray-500 pt-2">
             <span>Showing {tenants.length} of {totalTenants} registered restaurants</span>
-            <span>RESTOBILL SaaS Control Plane v2.1</span>
+            <span>FASTBILLO SaaS Control Plane v2.1</span>
           </div>
         </div>
 

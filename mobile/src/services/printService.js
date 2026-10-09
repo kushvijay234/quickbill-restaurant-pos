@@ -6,7 +6,7 @@ import { formatCurrency } from '../constants/currencies';
  * Generates thermal 80mm/58mm standard receipt HTML
  */
 export const generateReceiptHtml = (order, profile) => {
-  const restaurantName = profile?.restaurantName || 'QuickBill Restaurant';
+  const restaurantName = profile?.restaurantName || 'FASTBILLO Restaurant';
   const address = profile?.address || '';
   const phone = profile?.phone || '';
   const currency = order.currency || { symbol: '₹' };
@@ -121,7 +121,7 @@ export const generateReceiptHtml = (order, profile) => {
 
         <div class="footer">
           <p>Thank you for dining with us!</p>
-          <p style="font-size: 9px; color: #888;">Powered by QuickBill POS</p>
+          <p style="font-size: 9px; color: #888;">Powered by FASTBILLO — Bill Fast. Grow Faster.</p>
         </div>
       </body>
     </html>

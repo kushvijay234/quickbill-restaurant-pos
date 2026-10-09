@@ -112,8 +112,8 @@ export const RestaurantProfileScreen = ({ navigation }) => {
           style={[
             styles.planCard,
             {
-              backgroundColor: isDark ? '#1e1b4b' : '#eef2ff',
-              borderColor: '#c7d2fe',
+              backgroundColor: isDark ? '#064e3b' : '#f0fdf4',
+              borderColor: isDark ? '#047857' : '#bbf7d0',
             },
           ]}
         >
@@ -124,7 +124,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
               </View>
               <View>
                 <Text style={styles.planSectionLabel}>PLAN & BILLING</Text>
-                <Text style={[styles.planCardName, { color: isDark ? '#ffffff' : '#312e81' }]}>
+                <Text style={[styles.planCardName, { color: isDark ? '#ffffff' : '#14532d' }]}>
                   {planName}
                 </Text>
               </View>
@@ -132,7 +132,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
             <Badge label={planStatus} variant={planStatus === 'Active' ? 'success' : 'role'} size="sm" />
           </View>
 
-          <Text style={[styles.planCardSubtitle, { color: isDark ? '#c7d2fe' : '#4338ca' }]}>
+          <Text style={[styles.planCardSubtitle, { color: isDark ? '#bbf7d0' : '#15803d' }]}>
             {typeof daysLeft === 'number'
               ? `${daysLeft} days remaining in trial • Tap to view plans or upgrade`
               : 'Tap to view subscription details, invoices, and quota limits'}
@@ -156,7 +156,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
               style={[styles.menuRow, { borderBottomColor: colors.border }]}
             >
               <View style={styles.menuRowLeft}>
-                <View style={[styles.menuIconWrap, { backgroundColor: '#e0e7ff' }]}>
+                <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                   <Ionicons name="people-outline" size={18} color={COLORS.primary} />
                 </View>
                 <View>
@@ -217,6 +217,47 @@ export const RestaurantProfileScreen = ({ navigation }) => {
             keyboardType="phone-pad"
             leftIcon={<Ionicons name="call-outline" size={18} color={colors.textMuted} />}
           />
+        </View>
+
+        {/* LOGGED IN ACCOUNT / USER DETAILS */}
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Logged-in Account</Text>
+
+          <View
+            style={[
+              styles.userAccountRow,
+              {
+                backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc',
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <View style={styles.userAvatar}>
+              <Ionicons name="person" size={20} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <Text style={[styles.accountUserName, { color: colors.text }]}>
+                  {user?.username || user?.name || 'Staff Member'}
+                </Text>
+                {user?.role ? (
+                  <Badge
+                    label={user.role.toUpperCase()}
+                    variant={user.role === 'admin' ? 'role' : 'info'}
+                    size="sm"
+                  />
+                ) : null}
+              </View>
+              <Text style={[styles.accountUserEmail, { color: colors.textMuted }]}>
+                {user?.email || 'Logged in'}
+              </Text>
+              {tenantSlug ? (
+                <Text style={[styles.accountTenantSlug, { color: colors.textMuted }]}>
+                  Restaurant ID: {tenantSlug}
+                </Text>
+              ) : null}
+            </View>
+          </View>
         </View>
 
         {/* TAX & CURRENCY */}
@@ -444,18 +485,32 @@ const styles = StyleSheet.create({
   saveBtn: {
     marginTop: 4,
   },
-  logoutBtn: {
+  userAccountRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
+    padding: 12,
+    borderRadius: 12,
     borderWidth: 1,
-    marginTop: 4,
+    gap: 12,
   },
-  logoutBtnText: {
-    fontSize: 14,
+  userAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(5, 150, 105, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accountUserName: {
+    fontSize: 15,
     fontWeight: '800',
+  },
+  accountUserEmail: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  accountTenantSlug: {
+    fontSize: 11,
+    marginTop: 2,
   },
 });

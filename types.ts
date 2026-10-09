@@ -72,9 +72,15 @@ export interface ILog {
     id: string;
     level: 'info' | 'warn' | 'error';
     message: string;
+    source?: 'web' | 'mobile' | 'backend' | 'system';
+    platform?: string;
+    endpoint?: string;
+    statusCode?: number;
+    stack?: string;
+    tenantSlug?: string;
     meta?: Record<string, any>;
     timestamp: string;
-    userId?: { username: string };
+    userId?: { username: string } | string;
 }
 
 export interface IAdminStats {

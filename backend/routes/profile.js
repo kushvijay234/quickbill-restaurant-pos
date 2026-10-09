@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
         let profile = await Profile.findOne();
         if (!profile) {
             profile = await Profile.create({ 
-                restaurantName: req.tenant?.name || 'RESTOBILL Restaurant',
+                restaurantName: req.tenant?.name || 'FASTBILLO Restaurant',
                 currency: req.tenant?.settings?.currency || 'INR',
                 currencySymbol: req.tenant?.settings?.currencySymbol || '₹',
                 taxRate: req.tenant?.settings?.taxRate !== undefined ? req.tenant.settings.taxRate : 0.05,

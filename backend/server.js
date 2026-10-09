@@ -134,10 +134,41 @@ app.use('/api/profile', resolveTenant({ optional: true }), subscriptionGuard, re
 app.use('/api/logs', resolveTenant({ optional: true }), require('./routes/logs'));
 app.use('/api/admin', resolveTenant({ optional: true }), subscriptionGuard, require('./routes/admin'));
 
+// Global Centralized Error Handling & Database Logging Middleware
+app.use(async (err, req, res, next) => {
+    try {
+        const DefaultLog = require('./models/log');
+        const LogModel = (req.tenantModels && req.tenantModels.Log) || DefaultLog;
+        await LogModel.create({
+            level: 'error',
+            message: err.message || 'Unhandled Server Error',
+            source: 'backend',
+            endpoint: `${req.method} ${req.originalUrl || req.url}`,
+            statusCode: err.statusCode || 500,
+            stack: err.stack ? err.stack.substring(0, 4096) : '',
+            tenantSlug: req.tenantSlug || req.headers['x-tenant-id'] || '',
+            userId: req.user?._id || req.user?.id || null,
+            meta: {
+                query: req.query,
+                ip: req.ip,
+                userAgent: req.headers['user-agent']
+            }
+        });
+    } catch (logErr) {
+        console.error('[DB Error Log Failed]:', logErr.message);
+    }
+
+    const statusCode = err.statusCode || (res.statusCode >= 400 ? res.statusCode : 500);
+    res.status(statusCode).json({
+        success: false,
+        message: err.message || 'Internal Server Error'
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-    console.log(` RESTOBILL Multi-Tenant SaaS Server running on port ${PORT}`);
+    console.log(` FASTBILLO Multi-Tenant SaaS Server running on port ${PORT}`);
 });
 
 // Graceful shutdown handling

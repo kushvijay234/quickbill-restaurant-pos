@@ -5,10 +5,37 @@ const LogSchema = new mongoose.Schema({
         type: String,
         enum: ['info', 'warn', 'error'],
         required: true,
+        index: true
     },
     message: {
         type: String,
         required: true,
+    },
+    source: {
+        type: String,
+        enum: ['web', 'mobile', 'backend', 'system'],
+        default: 'web',
+        index: true
+    },
+    platform: {
+        type: String,
+        default: ''
+    },
+    endpoint: {
+        type: String,
+        default: ''
+    },
+    statusCode: {
+        type: Number,
+    },
+    stack: {
+        type: String,
+        default: ''
+    },
+    tenantSlug: {
+        type: String,
+        default: '',
+        index: true
     },
     meta: {
         type: mongoose.Schema.Types.Mixed,
@@ -16,13 +43,17 @@ const LogSchema = new mongoose.Schema({
     timestamp: {
         type: Date,
         default: Date.now,
+        index: true
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: false,
+        index: true
     }
 },
 {
+    timestamps: true,
     toJSON: {
         virtuals: true,
         transform: function (doc, ret) {

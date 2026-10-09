@@ -269,7 +269,7 @@ router.get('/checkout-page', async (req, res) => {
     keyId = process.env.RAZORPAY_KEY_ID,
     amount,
     planId,
-    planName = 'QuickBill Plan',
+    planName = 'FASTBILLO Plan',
     tenantSlug,
     token,
     billingCycle = 'monthly'
@@ -282,7 +282,7 @@ router.get('/checkout-page', async (req, res) => {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>QuickBill POS - Upgrade to ${planName}</title>
+  <title>FASTBILLO POS - Upgrade to ${planName}</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -401,7 +401,7 @@ router.get('/checkout-page', async (req, res) => {
 <body>
   <div class="card">
     <div class="badge-icon">⚡</div>
-    <h1>QuickBill POS</h1>
+    <h1>FASTBILLO POS</h1>
     <div class="subtitle">Complete payment securely with Razorpay</div>
 
     <div class="details">
@@ -430,12 +430,12 @@ router.get('/checkout-page', async (req, res) => {
         key: "${keyId}",
         amount: "${amount}",
         currency: "INR",
-        name: "QuickBill POS",
+        name: "FASTBILLO POS",
         description: "${planName} Subscription",
         order_id: "${orderId}",
         theme: { color: "#059669" },
         handler: function(response) {
-          document.getElementById('status').innerHTML = '<div class="status-box info">⏳ Verifying payment with QuickBill server...</div>';
+          document.getElementById('status').innerHTML = '<div class="status-box info">⏳ Verifying payment with FASTBILLO server...</div>';
           document.getElementById('payBtn').style.display = 'none';
 
           fetch('/api/subscription/verify-payment', {
@@ -456,7 +456,7 @@ router.get('/checkout-page', async (req, res) => {
           .then(function(res) { return res.json(); })
           .then(function(data) {
             if (data.success) {
-              document.getElementById('status').innerHTML = '<div class="status-box success">🎉 <b>Payment Successful!</b><br>Your subscription has been activated.<br><br><b>Please switch back to the QuickBill POS app.</b></div>';
+              document.getElementById('status').innerHTML = '<div class="status-box success">🎉 <b>Payment Successful!</b><br>Your subscription has been activated.<br><br><b>Please switch back to the FASTBILLO POS app.</b></div>';
             } else {
               document.getElementById('payBtn').style.display = 'block';
               document.getElementById('status').innerHTML = '<div class="status-box error">Verification issue: ' + (data.message || 'Unknown error') + '</div>';

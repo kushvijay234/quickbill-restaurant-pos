@@ -12,11 +12,13 @@ import {
   Dimensions,
   Platform,
   StatusBar,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { FastBilloLogo } from '../common/FastBilloLogo';
 import { useTheme } from '../../context/ThemeContext';
 import { subscriptionService } from '../../services/subscriptionService';
 import { Badge } from '../common/Badge';
@@ -46,7 +48,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
     : insets.top;
 
   const isAdmin = user?.role === 'admin';
-  const displayName = profile?.restaurantName || 'QuickBill POS';
+  const displayName = profile?.restaurantName || 'FASTBILLO';
   const daysRemaining = subData?.daysRemaining;
   const planStatus = subData?.tenant?.status === 'active' ? 'Active' : 'Trial';
 
@@ -100,9 +102,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
           {/* Header Row */}
           <View style={[styles.headerRow, { borderBottomColor: colors.border }]}>
             <View style={styles.brandRow}>
-              <View style={styles.brandIcon}>
-                <Ionicons name="restaurant" size={20} color="#ffffff" />
-              </View>
+              <FastBilloLogo size={42} showBrandText={false} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.brandTitle, { color: colors.text }]} numberOfLines={1}>
                   {displayName}
@@ -122,28 +122,6 @@ export const SideMenuModal = ({ visible, onClose }) => {
             >
               <Ionicons name="close" size={20} color={colors.text} />
             </TouchableOpacity>
-          </View>
-
-          {/* User info chip */}
-          <View style={[styles.userChip, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc', borderColor: colors.border }]}>
-            <View style={styles.userAvatar}>
-              <Ionicons name="person" size={16} color={COLORS.primary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
-                {user?.username || user?.name || 'Staff Member'}
-              </Text>
-              <Text style={[styles.userEmail, { color: colors.textMuted }]} numberOfLines={1}>
-                {user?.email || 'Logged in'}
-              </Text>
-            </View>
-            {user?.role ? (
-              <Badge
-                label={user.role}
-                variant={user.role === 'admin' ? 'role' : 'info'}
-                size="sm"
-              />
-            ) : null}
           </View>
 
           {/* Navigation Links ScrollView */}
@@ -206,7 +184,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
                   onPress={() => handleNav('StaffManagement')}
                   style={[styles.menuItem, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}
                 >
-                  <View style={[styles.menuIconWrap, { backgroundColor: '#e0e7ff' }]}>
+                  <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                     <Ionicons name="people-outline" size={18} color={COLORS.primary} />
                   </View>
                   <Text style={[styles.menuItemText, { color: colors.text }]}>Staff Accounts</Text>
@@ -237,7 +215,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               onPress={() => handleNav('Settings')}
               style={[styles.menuItem, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}
             >
-              <View style={[styles.menuIconWrap, { backgroundColor: '#e0e7ff' }]}>
+              <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                 <Ionicons name="settings-outline" size={18} color={COLORS.primary} />
               </View>
               <Text style={[styles.menuItemText, { color: colors.text }]}>Restaurant Settings</Text>
@@ -247,16 +225,16 @@ export const SideMenuModal = ({ visible, onClose }) => {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => handleNav('Subscription')}
-              style={[styles.menuItem, { backgroundColor: isDark ? '#1e1b4b' : '#eef2ff' }]}
+              style={[styles.menuItem, { backgroundColor: isDark ? '#064e3b' : '#f0fdf4' }]}
             >
-              <View style={[styles.menuIconWrap, { backgroundColor: '#4338ca' }]}>
+              <View style={[styles.menuIconWrap, { backgroundColor: COLORS.primary }]}>
                 <Ionicons name="sparkles" size={18} color="#ffffff" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.menuItemText, { color: isDark ? '#ffffff' : '#312e81', fontWeight: '800' }]}>
+                <Text style={[styles.menuItemText, { color: isDark ? '#ffffff' : '#14532d', fontWeight: '800' }]}>
                   Plan & Subscription
                 </Text>
-                <Text style={{ fontSize: 11, color: isDark ? '#c7d2fe' : '#4338ca' }}>
+                <Text style={{ fontSize: 11, color: isDark ? '#bbf7d0' : '#15803d' }}>
                   {typeof daysRemaining === 'number'
                     ? `${daysRemaining} days left in ${planStatus}`
                     : 'Manage billing & upgrades'}
@@ -315,9 +293,38 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <Text style={styles.logoutBtnText}>Sign Out</Text>
             </TouchableOpacity>
 
-            <Text style={[styles.versionText, { color: colors.textMuted }]}>
-              QuickBill POS • v1.0.0
-            </Text>
+            {/* FASTBILLO Branding Footer */}
+            <View style={styles.brandingFooter}>
+              <View style={styles.brandRowInline}>
+                <FastBilloLogo size={22} showBrandText={false} style={{ marginRight: 6 }} />
+                <Text style={[styles.brandMainTitle, { color: colors.text }]}>
+                  FAST<Text style={{ color: '#16a34a' }}>BILLO</Text>
+                </Text>
+                <Text style={[styles.brandBullet, { color: colors.textMuted }]}>•</Text>
+                <Text style={[styles.brandTagline, { color: colors.textSecondary }]}>
+                  Bill Fast. Grow Faster.
+                </Text>
+              </View>
+
+              <View style={styles.poweredByContainer}>
+                <Text style={[styles.poweredByPrefix, { color: colors.textMuted }]}>
+                  Powered by{' '}
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => Linking.openURL('https://vjenterprisesdigitalsolutions.com/')}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Text style={[styles.poweredByCompany, { color: COLORS.primary }]}>
+                    VJ ENTERPRISES DIGITAL SOLUTIONS
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={[styles.mottoText, { color: colors.textMuted }]}>
+                • "Grow Digitally, Grow Confidently"
+              </Text>
+            </View>
           </ScrollView>
         </View>
       </View>
@@ -380,31 +387,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  userChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 10,
-  },
-  userAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(5, 150, 105, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  userName: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  userEmail: {
-    fontSize: 11,
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -450,9 +432,52 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
   },
-  versionText: {
-    textAlign: 'center',
+  brandingFooter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(148, 163, 184, 0.2)',
+    gap: 5,
+  },
+  brandRowInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  brandMainTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.6,
+  },
+  brandBullet: {
     fontSize: 11,
-    marginTop: 14,
+  },
+  brandTagline: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  poweredByContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  poweredByPrefix: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  poweredByCompany: {
+    fontSize: 10,
+    fontWeight: '800',
+    textDecorationLine: 'underline',
+  },
+  mottoText: {
+    fontSize: 10,
+    fontStyle: 'italic',
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });

@@ -4,7 +4,7 @@ const ProfileSchema = new mongoose.Schema({
     restaurantName: {
         type: String,
         required: true,
-        default: 'RESTOBILL Restaurant'
+        default: 'FASTBILLO Restaurant'
     },
     address: {
         type: String,

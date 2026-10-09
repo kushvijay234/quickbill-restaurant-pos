@@ -1,16 +1,18 @@
 import React from 'react';
+import FastBilloLogo from './common/FastBilloLogo';
 
 const Footer: React.FC = () => {
   return (
     <footer className="mt-auto py-5 border-t border-gray-200/80 dark:border-gray-800 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm transition-colors duration-200 no-print">
       <div className="container mx-auto px-4 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
+          <FastBilloLogo size={22} showBrandText={false} />
           <span className="font-black text-gray-900 dark:text-white tracking-tight">
-            RESTO<span className="text-indigo-600">BILL</span>
+            FAST<span className="text-emerald-600 dark:text-emerald-400">BILLO</span>
           </span>
           <span className="text-gray-400 dark:text-gray-500">•</span>
           <span className="text-gray-500 dark:text-gray-400 font-medium">
-            Bill. Serve. Grow.
+            Bill Fast. Grow Faster.
           </span>
         </div>
 
