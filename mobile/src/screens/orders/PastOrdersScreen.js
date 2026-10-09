@@ -106,7 +106,7 @@ export const PastOrdersScreen = ({ navigation }) => {
         {/* Date Filter Tabs */}
         <View style={styles.filterTabs}>
           {[
-            { id: 'all', label: 'All Orders' },
+            { id: 'all', label: 'All Bills' },
             { id: 'today', label: 'Today' },
             { id: 'yesterday', label: 'Yesterday' },
           ].map((tab) => {

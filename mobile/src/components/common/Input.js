@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { COLORS } from '../../constants/colors';
 
@@ -9,6 +10,7 @@ export const Input = ({
   onChangeText,
   placeholder,
   secureTextEntry = false,
+  isPassword = false,
   keyboardType = 'default',
   autoCapitalize = 'none',
   error,
@@ -18,6 +20,29 @@ export const Input = ({
   inputStyle,
 }) => {
   const { colors, isDark } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPasswordField = isPassword || secureTextEntry;
+  const isTextSecured = rightIcon ? secureTextEntry : (isPasswordField ? !showPassword : false);
+
+  let effectiveRightIcon = rightIcon;
+  if (!effectiveRightIcon && isPasswordField) {
+    effectiveRightIcon = (
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setShowPassword((prev) => !prev)}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityRole="button"
+        accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+      >
+        <Ionicons
+          name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+          size={20}
+          color={colors.textMuted}
+        />
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <View style={[styles.container, style]}>
@@ -33,18 +58,20 @@ export const Input = ({
           },
         ]}
       >
-        {leftIcon ? <View style={styles.iconContainer}>{leftIcon}</View> : null}
+        {leftIcon ? <View style={styles.leftIconContainer}>{leftIcon}</View> : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.textMuted}
-          secureTextEntry={secureTextEntry}
+          secureTextEntry={isTextSecured}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           style={[styles.input, { color: colors.text }, inputStyle]}
         />
-        {rightIcon ? <View style={styles.iconContainer}>{rightIcon}</View> : null}
+        {effectiveRightIcon ? (
+          <View style={styles.rightIconContainer}>{effectiveRightIcon}</View>
+        ) : null}
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
@@ -73,8 +100,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     paddingVertical: 8,
   },
-  iconContainer: {
+  leftIconContainer: {
     marginRight: 8,
+  },
+  rightIconContainer: {
+    marginLeft: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: {
     color: COLORS.danger,
@@ -83,3 +115,4 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+
