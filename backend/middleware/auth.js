@@ -62,3 +62,39 @@ exports.authorize = (...roles) => {
     next();
   };
 };
+
+// Optional protect: extracts user if token provided, but does not block if missing/invalid
+exports.optionalProtect = async (req, res, next) => {
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token || !process.env.JWT_SECRET) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!req.tenantModels && decoded.tenantSlug) {
+      try {
+        const { getTenantConnection } = require('../config/tenantManager');
+        const { models, tenant } = await getTenantConnection(decoded.tenantSlug);
+        req.tenantSlug = decoded.tenantSlug;
+        req.tenant = tenant;
+        req.tenantModels = models;
+      } catch (tErr) {
+        // ignore
+      }
+    }
+
+    const UserModel = (req.tenantModels && req.tenantModels.User) || User;
+    req.user = await UserModel.findById(decoded.id);
+  } catch (err) {
+    // ignore token errors for optional protection
+  }
+  next();
+};

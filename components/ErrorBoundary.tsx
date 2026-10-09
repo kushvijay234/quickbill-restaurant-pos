@@ -21,10 +21,9 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('Uncaught React error', { 
-        message: error.toString(), 
+    logger.error(`Uncaught React error: ${error.message || error.toString()}`, { 
         componentStack: errorInfo.componentStack 
-    });
+    }, error);
   }
 
   public render() {

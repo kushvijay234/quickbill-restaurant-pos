@@ -188,8 +188,14 @@ router.get('/logs', async (req, res) => {
     try {
         const Log = getLog(req);
         const query = {};
-        if (req.query.userId) {
+        if (req.query.userId && req.query.userId !== 'all') {
             query.userId = req.query.userId;
+        }
+        if (req.query.source && req.query.source !== 'all') {
+            query.source = req.query.source;
+        }
+        if (req.query.level && req.query.level !== 'all') {
+            query.level = req.query.level;
         }
         const logs = await Log.find(query).populate('userId', 'username').sort({ timestamp: -1 }).limit(200);
         res.json(logs);

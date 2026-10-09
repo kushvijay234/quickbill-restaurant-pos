@@ -117,11 +117,24 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
     return response.json();
   } catch (error) {
     let errorMessage = 'An unknown error occurred';
+    let statusCode: number | undefined;
+    let errorData: any;
+
     if (error instanceof Error) {
       errorMessage = error.message;
+      statusCode = (error as any).status;
+      errorData = (error as any).data;
     }
     
-    logger.error(`API call failed: ${options.method || 'GET'} ${endpoint}`, { error: errorMessage });
+    if (!endpoint.includes('/logs')) {
+      logger.error(
+        `API call failed: ${options.method || 'GET'} ${endpoint}`,
+        { error: errorMessage, statusCode, errorData },
+        error instanceof Error ? error : undefined,
+        statusCode,
+        endpoint
+      );
+    }
 
     throw error;
   }
