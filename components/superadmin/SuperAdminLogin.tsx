@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api } from '../../services/api';
 import { ISuperAdminUser } from '../../types';
+import FastBilloLogo from '../common/FastBilloLogo';
 
 interface SuperAdminLoginProps {
   onSuccess: (user: ISuperAdminUser, token: string) => void;
@@ -8,7 +9,7 @@ interface SuperAdminLoginProps {
 }
 
 const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onSuccess, onBackToPos }) => {
-  const [emailOrUsername, setEmailOrUsername] = useState('superadmin@restobill.com');
+  const [emailOrUsername, setEmailOrUsername] = useState('superadmin@fastbillo.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -51,17 +52,13 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onSuccess, onBackToPo
       <div className="w-full max-w-md p-8 bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-indigo-900/40 animate-fade-in">
         
         {/* Header Branding */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-400 mb-2 shadow-inner">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
+        <div className="text-center space-y-2 flex flex-col items-center">
+          <FastBilloLogo size={56} showBrandText={false} className="mb-1" />
           <div className="flex items-center justify-center gap-2">
             <span className="text-2xl font-black tracking-tight text-white">
-              RESTO<span className="text-indigo-400">BILL</span>
+              FAST<span className="text-emerald-400">BILLO</span>
             </span>
-            <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full">
+            <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
               Control Plane
             </span>
           </div>
@@ -94,7 +91,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onSuccess, onBackToPo
               value={emailOrUsername}
               onChange={(e) => { setEmailOrUsername(e.target.value); if (error) setError(''); }}
               className="w-full px-3.5 py-2.5 text-sm bg-gray-800/80 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              placeholder="superadmin@restobill.com"
+              placeholder="superadmin@fastbillo.com"
             />
           </div>
 

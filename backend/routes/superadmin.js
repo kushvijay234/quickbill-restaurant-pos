@@ -24,7 +24,9 @@ router.post('/login', async (req, res) => {
     const superAdmin = await SuperAdmin.findOne({
       $or: [
         { email: rawInput },
-        { username: rawInput }
+        { username: rawInput },
+        ...(rawInput === 'superadmin@fastbillo.com' ? [{ email: 'superadmin@restobill.com' }] : []),
+        ...(rawInput === 'superadmin@restobill.com' ? [{ email: 'superadmin@fastbillo.com' }] : [])
       ]
     }).select('+password');
 

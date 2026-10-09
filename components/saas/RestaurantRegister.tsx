@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { api, setTenantSlug } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import FastBilloLogo from '../common/FastBilloLogo';
 
 interface RestaurantRegisterProps {
   onClose: () => void;
@@ -145,12 +146,13 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
       <div className="w-full max-w-lg p-6 sm:p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center pb-4 border-b border-gray-100 dark:border-gray-700">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
+              <FastBilloLogo size={32} showBrandText={false} />
               <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
-                RESTO<span className="text-indigo-600">BILL</span>
+                FAST<span className="text-emerald-600">BILLO</span>
               </span>
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 dark:bg-indigo-900/40 dark:text-indigo-300 rounded-full">
-                Bill. Serve. Grow.
+              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 dark:bg-emerald-900/40 dark:text-emerald-300 rounded-full">
+                Bill Fast. Grow Faster.
               </span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">

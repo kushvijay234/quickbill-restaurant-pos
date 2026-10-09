@@ -65,8 +65,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
           key: orderData.keyId,
           amount: orderData.amount,
           currency: orderData.currency,
-          name: 'RESTOBILL',
-          description: `RESTOBILL — Bill. Serve. Grow. (${plan.name} - ${billingCycle})`,
+          name: 'FASTBILLO',
+          description: `FASTBILLO — Bill Fast. Grow Faster. (${plan.name} - ${billingCycle})`,
           order_id: orderData.orderId,
           handler: async (response: any) => {
             try {
@@ -89,7 +89,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
             email: ''
           },
           theme: {
-            color: '#4F46E5'
+            color: '#16a34a'
           }
         };
 

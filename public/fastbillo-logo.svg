@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="fastbilloGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" />
+      <stop offset="50%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#15803d" />
+    </linearGradient>
+    <filter id="billShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#0a3c19" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Square Green Box with Rounded Corners -->
+  <rect x="16" y="16" width="480" height="480" rx="90" fill="url(#fastbilloGrad)" />
+  <rect x="18" y="18" width="476" height="476" rx="88" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="2" />
+
+  <!-- Middle Bill / Receipt Design -->
+  <g filter="url(#billShadow)">
+    <!-- White Receipt Body with Zigzag Perforation at Bottom -->
+    <path d="
+      M 145 75
+      L 367 75
+      A 14 14 0 0 1 381 89
+      L 381 305
+      L 367 317
+      L 353 305
+      L 339 317
+      L 325 305
+      L 311 317
+      L 297 305
+      L 283 317
+      L 269 305
+      L 255 317
+      L 241 305
+      L 227 317
+      L 213 305
+      L 199 317
+      L 185 305
+      L 171 317
+      L 157 305
+      L 143 317
+      L 131 305
+      L 131 89
+      A 14 14 0 0 1 145 75
+      Z
+    " fill="#ffffff" />
+  </g>
+
+  <!-- Header Accent Pill -->
+  <rect x="220" y="94" width="72" height="11" rx="5.5" fill="#16a34a" />
+
+  <!-- Receipt Dots -->
+  <circle cx="224" cy="116" r="2.5" fill="#cbd5e1" />
+  <circle cx="256" cy="116" r="2.5" fill="#cbd5e1" />
+  <circle cx="288" cy="116" r="2.5" fill="#cbd5e1" />
+
+  <!-- Receipt Divider Line -->
+  <line x1="151" y1="133" x2="361" y2="133" stroke="#e2e8f0" stroke-width="2" />
+
+  <!-- Bill Item Lines -->
+  <!-- Item 1 -->
+  <rect x="153" y="150" width="115" height="7.5" rx="3.75" fill="#94a3b8" />
+  <rect x="315" y="150" width="46" height="7.5" rx="3.75" fill="#94a3b8" />
+
+  <!-- Item 2 -->
+  <rect x="153" y="172" width="95" height="7.5" rx="3.75" fill="#cbd5e1" />
+  <rect x="323" y="172" width="38" height="7.5" rx="3.75" fill="#cbd5e1" />
+
+  <!-- Item 3 -->
+  <rect x="153" y="194" width="125" height="7.5" rx="3.75" fill="#cbd5e1" />
+  <rect x="310" y="194" width="51" height="7.5" rx="3.75" fill="#cbd5e1" />
+
+  <!-- Item 4 -->
+  <rect x="153" y="216" width="85" height="7.5" rx="3.75" fill="#e2e8f0" />
+  <rect x="325" y="216" width="36" height="7.5" rx="3.75" fill="#e2e8f0" />
+
+  <!-- Dashed Line before Total -->
+  <line x1="151" y1="239" x2="361" y2="239" stroke="#94a3b8" stroke-width="2.5" stroke-dasharray="6,5" />
+
+  <!-- Total Row in Green -->
+  <rect x="153" y="255" width="75" height="12" rx="4" fill="#16a34a" />
+  <rect x="295" y="255" width="66" height="12" rx="4" fill="#16a34a" />
+
+  <!-- Mini Barcode at Receipt Bottom -->
+  <g fill="#475569">
+    <rect x="160" y="281" width="3" height="14" />
+    <rect x="166" y="281" width="5" height="14" />
+    <rect x="174" y="281" width="2" height="14" />
+    <rect x="179" y="281" width="4" height="14" />
+    <rect x="186" y="281" width="6" height="14" />
+    <rect x="195" y="281" width="3" height="14" />
+    <rect x="201" y="281" width="5" height="14" />
+    <rect x="209" y="281" width="2" height="14" />
+    <rect x="214" y="281" width="6" height="14" />
+    <rect x="223" y="281" width="3" height="14" />
+    <rect x="229" y="281" width="4" height="14" />
+    <rect x="236" y="281" width="6" height="14" />
+    <rect x="245" y="281" width="3" height="14" />
+    <rect x="251" y="281" width="5" height="14" />
+    <rect x="259" y="281" width="2" height="14" />
+    <rect x="264" y="281" width="5" height="14" />
+    <rect x="272" y="281" width="3" height="14" />
+    <rect x="278" y="281" width="6" height="14" />
+    <rect x="287" y="281" width="4" height="14" />
+    <rect x="294" y="281" width="2" height="14" />
+    <rect x="299" y="281" width="5" height="14" />
+    <rect x="307" y="281" width="3" height="14" />
+    <rect x="313" y="281" width="6" height="14" />
+    <rect x="322" y="281" width="4" height="14" />
+    <rect x="329" y="281" width="3" height="14" />
+    <rect x="335" y="281" width="5" height="14" />
+    <rect x="343" y="281" width="4" height="14" />
+    <rect x="350" y="281" width="2" height="14" />
+  </g>
+
+  <!-- Below the Design: FASTBILLO in White Color -->
+  <text x="256" y="420"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', 'Helvetica Neue', Arial, sans-serif"
+        font-size="52"
+        font-weight="900"
+        letter-spacing="2.5"
+        fill="#ffffff"
+        text-anchor="middle">FASTBILLO</text>
+</svg>

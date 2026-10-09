@@ -547,12 +547,12 @@ export const SubscriptionScreen = ({ navigation }) => {
                     style={[
                       styles.instantTestBtn,
                       {
-                        borderColor: '#c7d2fe',
-                        backgroundColor: isDark ? '#1e1b4b' : '#eef2ff',
+                        borderColor: isDark ? '#047857' : '#bbf7d0',
+                        backgroundColor: isDark ? '#064e3b' : '#f0fdf4',
                       },
                     ]}
                   >
-                    <Ionicons name="flash" size={16} color="#4338ca" />
+                    <Ionicons name="flash" size={16} color={COLORS.primary} />
                     <Text style={styles.instantTestBtnText}>
                       Instant Test Activation (Dev Sandbox)
                     </Text>
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   instantTestBtnText: {
-    color: '#4338ca',
+    color: '#16a34a',
     fontSize: 13,
     fontWeight: '700',
   },

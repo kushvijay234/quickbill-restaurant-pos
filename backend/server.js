@@ -137,7 +137,7 @@ app.use('/api/admin', resolveTenant({ optional: true }), subscriptionGuard, requ
 const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
-    console.log(` RESTOBILL Multi-Tenant SaaS Server running on port ${PORT}`);
+    console.log(` FASTBILLO Multi-Tenant SaaS Server running on port ${PORT}`);
 });
 
 // Graceful shutdown handling

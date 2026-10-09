@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { FastBilloLogo } from '../common/FastBilloLogo';
 import { useTheme } from '../../context/ThemeContext';
 import { subscriptionService } from '../../services/subscriptionService';
 import { Badge } from '../common/Badge';
@@ -47,7 +48,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
     : insets.top;
 
   const isAdmin = user?.role === 'admin';
-  const displayName = profile?.restaurantName || 'RESTOBILL';
+  const displayName = profile?.restaurantName || 'FASTBILLO';
   const daysRemaining = subData?.daysRemaining;
   const planStatus = subData?.tenant?.status === 'active' ? 'Active' : 'Trial';
 
@@ -101,9 +102,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
           {/* Header Row */}
           <View style={[styles.headerRow, { borderBottomColor: colors.border }]}>
             <View style={styles.brandRow}>
-              <View style={styles.brandIcon}>
-                <Ionicons name="restaurant" size={20} color="#ffffff" />
-              </View>
+              <FastBilloLogo size={42} showBrandText={false} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.brandTitle, { color: colors.text }]} numberOfLines={1}>
                   {displayName}
@@ -185,7 +184,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
                   onPress={() => handleNav('StaffManagement')}
                   style={[styles.menuItem, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}
                 >
-                  <View style={[styles.menuIconWrap, { backgroundColor: '#e0e7ff' }]}>
+                  <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                     <Ionicons name="people-outline" size={18} color={COLORS.primary} />
                   </View>
                   <Text style={[styles.menuItemText, { color: colors.text }]}>Staff Accounts</Text>
@@ -216,7 +215,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               onPress={() => handleNav('Settings')}
               style={[styles.menuItem, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}
             >
-              <View style={[styles.menuIconWrap, { backgroundColor: '#e0e7ff' }]}>
+              <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                 <Ionicons name="settings-outline" size={18} color={COLORS.primary} />
               </View>
               <Text style={[styles.menuItemText, { color: colors.text }]}>Restaurant Settings</Text>
@@ -226,16 +225,16 @@ export const SideMenuModal = ({ visible, onClose }) => {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => handleNav('Subscription')}
-              style={[styles.menuItem, { backgroundColor: isDark ? '#1e1b4b' : '#eef2ff' }]}
+              style={[styles.menuItem, { backgroundColor: isDark ? '#064e3b' : '#f0fdf4' }]}
             >
-              <View style={[styles.menuIconWrap, { backgroundColor: '#4338ca' }]}>
+              <View style={[styles.menuIconWrap, { backgroundColor: COLORS.primary }]}>
                 <Ionicons name="sparkles" size={18} color="#ffffff" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.menuItemText, { color: isDark ? '#ffffff' : '#312e81', fontWeight: '800' }]}>
+                <Text style={[styles.menuItemText, { color: isDark ? '#ffffff' : '#14532d', fontWeight: '800' }]}>
                   Plan & Subscription
                 </Text>
-                <Text style={{ fontSize: 11, color: isDark ? '#c7d2fe' : '#4338ca' }}>
+                <Text style={{ fontSize: 11, color: isDark ? '#bbf7d0' : '#15803d' }}>
                   {typeof daysRemaining === 'number'
                     ? `${daysRemaining} days left in ${planStatus}`
                     : 'Manage billing & upgrades'}
@@ -294,15 +293,16 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <Text style={styles.logoutBtnText}>Sign Out</Text>
             </TouchableOpacity>
 
-            {/* RESTOBILL Branding Footer */}
+            {/* FASTBILLO Branding Footer */}
             <View style={styles.brandingFooter}>
               <View style={styles.brandRowInline}>
+                <FastBilloLogo size={22} showBrandText={false} style={{ marginRight: 6 }} />
                 <Text style={[styles.brandMainTitle, { color: colors.text }]}>
-                  RESTO<Text style={{ color: COLORS.primary }}>BILL</Text>
+                  FAST<Text style={{ color: '#16a34a' }}>BILLO</Text>
                 </Text>
                 <Text style={[styles.brandBullet, { color: colors.textMuted }]}>•</Text>
                 <Text style={[styles.brandTagline, { color: colors.textSecondary }]}>
-                  Bill. Serve. Grow.
+                  Bill Fast. Grow Faster.
                 </Text>
               </View>
 

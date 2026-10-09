@@ -112,7 +112,7 @@ router.post('/register', registerLimiter, async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: `Welcome to RESTOBILL! Your account for ${restaurantName} is ready.`,
+      message: `Welcome to FASTBILLO! Your account for ${restaurantName} is ready.`,
       ...result
     });
   } catch (err) {

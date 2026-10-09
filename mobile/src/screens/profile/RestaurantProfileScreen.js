@@ -112,8 +112,8 @@ export const RestaurantProfileScreen = ({ navigation }) => {
           style={[
             styles.planCard,
             {
-              backgroundColor: isDark ? '#1e1b4b' : '#eef2ff',
-              borderColor: '#c7d2fe',
+              backgroundColor: isDark ? '#064e3b' : '#f0fdf4',
+              borderColor: isDark ? '#047857' : '#bbf7d0',
             },
           ]}
         >
@@ -124,7 +124,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
               </View>
               <View>
                 <Text style={styles.planSectionLabel}>PLAN & BILLING</Text>
-                <Text style={[styles.planCardName, { color: isDark ? '#ffffff' : '#312e81' }]}>
+                <Text style={[styles.planCardName, { color: isDark ? '#ffffff' : '#14532d' }]}>
                   {planName}
                 </Text>
               </View>
@@ -132,7 +132,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
             <Badge label={planStatus} variant={planStatus === 'Active' ? 'success' : 'role'} size="sm" />
           </View>
 
-          <Text style={[styles.planCardSubtitle, { color: isDark ? '#c7d2fe' : '#4338ca' }]}>
+          <Text style={[styles.planCardSubtitle, { color: isDark ? '#bbf7d0' : '#15803d' }]}>
             {typeof daysLeft === 'number'
               ? `${daysLeft} days remaining in trial • Tap to view plans or upgrade`
               : 'Tap to view subscription details, invoices, and quota limits'}
@@ -156,7 +156,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
               style={[styles.menuRow, { borderBottomColor: colors.border }]}
             >
               <View style={styles.menuRowLeft}>
-                <View style={[styles.menuIconWrap, { backgroundColor: '#e0e7ff' }]}>
+                <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                   <Ionicons name="people-outline" size={18} color={COLORS.primary} />
                 </View>
                 <View>

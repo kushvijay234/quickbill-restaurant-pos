@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Badge } from './common/Badge';
 import { SideMenuModal } from './navigation/SideMenuModal';
+import { FastBilloLogo } from './common/FastBilloLogo';
 import { COLORS } from '../constants/colors';
 
 export const Header = ({ onAddItem, rightAction }) => {
@@ -18,7 +19,7 @@ export const Header = ({ onAddItem, rightAction }) => {
     ? Math.max(insets.top, StatusBar.currentHeight || 24)
     : insets.top;
 
-  const displayName = profile?.restaurantName || 'QuickBill POS';
+  const displayName = profile?.restaurantName || 'FASTBILLO POS';
 
   return (
     <>
@@ -39,9 +40,7 @@ export const Header = ({ onAddItem, rightAction }) => {
             onPress={() => setSideMenuVisible(true)}
             style={styles.profileTrigger}
           >
-            <View style={styles.brandIcon}>
-              <Ionicons name="menu" size={20} color="#ffffff" />
-            </View>
+            <FastBilloLogo size={38} showBrandText={false} />
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <Text style={[styles.restaurantName, { color: colors.text }]} numberOfLines={1}>

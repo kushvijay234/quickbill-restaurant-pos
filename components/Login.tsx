@@ -4,6 +4,7 @@ import { logger } from '../services/logger';
 import { api, setTenantSlug } from '../services/api';
 import RestaurantRegister from './saas/RestaurantRegister';
 import Footer from './Footer';
+import FastBilloLogo from './common/FastBilloLogo';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -53,15 +54,9 @@ const Login: React.FC = () => {
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md p-8 space-y-6 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
-          <div className="text-center">
-            
-            <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-              RESTO<span className="text-indigo-600">BILL</span>
-            </h1>
-            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase mt-1">
-              Bill. Serve. Grow.
-            </p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-center flex flex-col items-center">
+            <FastBilloLogo size={68} showBrandText={true} textSize="lg" className="flex-col !gap-2" />
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Sign in to your restaurant workspace
             </p>
           </div>

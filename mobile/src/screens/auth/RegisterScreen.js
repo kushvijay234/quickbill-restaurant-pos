@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { FastBilloLogo } from '../../components/common/FastBilloLogo';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { COLORS } from '../../constants/colors';
@@ -100,7 +101,7 @@ export const RegisterScreen = ({ navigation }) => {
 
       Alert.alert(
         'Registration Successful! 🎉',
-        `Welcome to QuickBill! Your ${TRIAL_PERIOD_DAYS}-day free trial for "${cleanRestName}" is now active.`,
+        `Welcome to FASTBILLO! Your ${TRIAL_PERIOD_DAYS}-day free trial for "${cleanRestName}" is now active.`,
         [{ text: 'Get Started' }]
       );
     } catch (err) {
@@ -143,20 +144,18 @@ export const RegisterScreen = ({ navigation }) => {
 
           {/* Brand Header */}
           <View style={styles.brandContainer}>
-            <View style={styles.brandIconWrapper}>
-              <Ionicons name="restaurant" size={28} color="#ffffff" />
-            </View>
+            <FastBilloLogo size={68} showBrandText={false} style={{ marginBottom: 12 }} />
             <Text style={[styles.brandTitle, { color: colors.text }]}>
-              RESTO<Text style={{ color: COLORS.primary }}>BILL</Text>
+              FAST<Text style={{ color: '#16a34a' }}>BILLO</Text>
             </Text>
-            <Text style={[styles.brandTagline, { color: COLORS.primary }]}>
-              BILL. SERVE. GROW.
+            <Text style={[styles.brandTagline, { color: '#16a34a' }]}>
+              BILL FAST. GROW FASTER.
             </Text>
           </View>
 
           {/* Free Trial Banner */}
           <View style={styles.trialBanner}>
-            <Ionicons name="sparkles" size={20} color="#4338ca" />
+            <Ionicons name="sparkles" size={20} color={COLORS.primary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.trialTitle}>{TRIAL_PERIOD_DAYS}-Day Free Trial Included</Text>
               <Text style={styles.trialSub}>Full POS access • No credit card required</Text>
@@ -419,21 +418,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#f0fdf4',
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#c7d2fe',
+    borderColor: '#bbf7d0',
   },
   trialTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#3730a3',
+    color: '#14532d',
   },
   trialSub: {
     fontSize: 12,
-    color: '#4338ca',
+    color: '#15803d',
     marginTop: 1,
   },
   card: {

@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
+import { FastBilloLogo } from '../../components/common/FastBilloLogo';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { storageService } from '../../services/storageService';
@@ -87,18 +88,16 @@ export const LoginScreen = ({ navigation }) => {
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          {/* Brand Header matching Web Frontend */}
+          {/* Brand Header */}
           <View style={styles.brandContainer}>
-            <View style={styles.brandIconWrapper}>
-              <Ionicons name="restaurant" size={32} color="#ffffff" />
-            </View>
+            <FastBilloLogo size={76} showBrandText={false} style={{ marginBottom: 14 }} />
 
             <Text style={[styles.brandTitle, { color: colors.text }]}>
-              RESTO<Text style={{ color: COLORS.primary }}>BILL</Text>
+              FAST<Text style={{ color: '#16a34a' }}>BILLO</Text>
             </Text>
 
-            <Text style={[styles.brandTagline, { color: COLORS.primary }]}>
-              BILL. SERVE. GROW.
+            <Text style={[styles.brandTagline, { color: '#16a34a' }]}>
+              BILL FAST. GROW FASTER.
             </Text>
 
             <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>
@@ -160,12 +159,12 @@ export const LoginScreen = ({ navigation }) => {
             {/* Register Action */}
             <View style={[styles.registerSection, { borderTopColor: colors.border }]}>
               <Text style={[styles.registerPrompt, { color: colors.textMuted }]}>
-                New to QuickBill POS?
+                New to FASTBILLO?
               </Text>
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => navigation.navigate('Register')}
-                style={[styles.registerBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#eef2ff', borderColor: '#c7d2fe' }]}
+                style={[styles.registerBtn, { backgroundColor: isDark ? colors.surfaceSubtle : '#f0fdf4', borderColor: '#bbf7d0' }]}
               >
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
                 <Text style={[styles.registerBtnText, { color: COLORS.primary }]}>

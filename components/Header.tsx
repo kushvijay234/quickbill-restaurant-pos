@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ICurrency, IUser } from '../types';
+import FastBilloLogo from './common/FastBilloLogo';
 
 interface HeaderProps {
   currency: ICurrency;
@@ -84,14 +85,7 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
     <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-40 transition-colors duration-300">
       <div className="container mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-8">
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-black text-gray-900 dark:text-gray-100 tracking-tight flex items-center leading-none">
-                RESTO<span className="text-indigo-600">BILL</span>
-              </h1>
-              <span className="text-[10px] font-bold text-indigo-600/80 dark:text-indigo-400/80 tracking-wider uppercase mt-0.5">
-                Bill. Serve. Grow.
-              </span>
-            </div>
+            <FastBilloLogo size={42} showBrandText={true} />
             {renderNavLinks(false)}
         </div>
 

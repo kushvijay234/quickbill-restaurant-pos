@@ -47,7 +47,7 @@ export const ReceiptModal = ({ visible, onClose, order, profile, onStartNewBill 
         {/* Receipt Container simulating thermal paper */}
         <View style={[styles.receiptPaper, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}>
           <Text style={[styles.restaurantTitle, { color: colors.text }]}>
-            {profile?.restaurantName || 'QuickBill POS'}
+            {profile?.restaurantName || 'FASTBILLO POS'}
           </Text>
           {profile?.address ? (
             <Text style={[styles.restaurantSub, { color: colors.textMuted }]}>{profile.address}</Text>

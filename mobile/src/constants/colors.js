@@ -1,10 +1,10 @@
 export const COLORS = {
-  // Brand colors - Matching Frontend (Tailwind Indigo-600)
-  primary: '#4f46e5', // Indigo 600
-  primaryDark: '#4338ca', // Indigo 700
-  primaryLight: '#6366f1', // Indigo 500
-  primarySoft: '#eef2ff', // Indigo 50
-  accent: '#4f46e5',
+  // Brand colors - Matching FASTBILLO Logo (Emerald / Green)
+  primary: '#308b1eff', // Green 600
+  primaryDark: '#15804eff', // Green 700
+  primaryLight: '#4fc279ff', // Green 500
+  primarySoft: '#f0fdf4', // Green 50
+  accent: '#a5540dff',
 
   // Frontend Light Theme
   light: {
@@ -41,5 +41,5 @@ export const COLORS = {
   // Payment methods
   cash: '#10b981',
   upi: '#8b5cf6',
-  card: '#4f46e5',
+  card: '#16a34a',
 };
