@@ -28,13 +28,13 @@ router.post('/register', registerLimiter, async (req, res) => {
 
   if (!restaurantName || !ownerEmail || !ownerPassword) {
     return res.status(400).json({
-      message: 'Please provide restaurant name, email, and password.'
+      message: 'Please provide Business name, email, and password.'
     });
   }
 
-  // 1. Restaurant Name: max 69 characters
+  // 1. Business Name: max 69 characters
   if (restaurantName.trim().length > 69) {
-    return res.status(400).json({ message: 'Restaurant name cannot exceed 69 characters.' });
+    return res.status(400).json({ message: 'Business name cannot exceed 69 characters.' });
   }
 
   // 2. Owner Name: max 30 characters

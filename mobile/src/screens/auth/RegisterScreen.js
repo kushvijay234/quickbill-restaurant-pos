@@ -63,12 +63,12 @@ export const RegisterScreen = ({ navigation }) => {
     const cleanPhone = ownerPhone.trim();
 
     if (!cleanRestName || !cleanEmail || !ownerPassword) {
-      setErrorMsg('Please enter restaurant name, email, and password.');
+      setErrorMsg('Please enter Business name, email, and password.');
       return;
     }
 
     if (cleanRestName.length > 69) {
-      setErrorMsg('Restaurant name cannot exceed 69 characters.');
+      setErrorMsg('Business name cannot exceed 69 characters.');
       return;
     }
 
@@ -138,7 +138,7 @@ export const RegisterScreen = ({ navigation }) => {
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
-            <Text style={[styles.topBarTitle, { color: colors.text }]}>Create Restaurant Account</Text>
+            <Text style={[styles.topBarTitle, { color: colors.text }]}>Create Account</Text>
             <View style={{ width: 32 }} />
           </View>
 
@@ -179,9 +179,9 @@ export const RegisterScreen = ({ navigation }) => {
               </View>
             ) : null}
 
-            {/* Restaurant Name */}
+            {/* Business Name */}
             <Input
-              label="Restaurant Name *"
+              label="Business Name *"
               placeholder="e.g. Spice Route Bistro"
               value={restaurantName}
               onChangeText={(text) => {
@@ -255,7 +255,7 @@ export const RegisterScreen = ({ navigation }) => {
             {/* Owner Email */}
             <Input
               label="Owner Email Address *"
-              placeholder="owner@restaurant.com"
+              placeholder="owner@Business.com"
               value={ownerEmail}
               onChangeText={(text) => {
                 setOwnerEmail(text);

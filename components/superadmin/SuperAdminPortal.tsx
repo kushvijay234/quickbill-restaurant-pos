@@ -406,7 +406,7 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
                   tenants.map(t => (
                     <tr key={t._id} className="hover:bg-gray-850/40 transition">
                       
-                      {/* Restaurant Name & Slug */}
+                      {/* Business Name & Slug */}
                       <td className="py-3 px-4">
                         <div className="font-bold text-white text-sm">{t.name}</div>
                         <div className="text-[11px] text-gray-400 flex items-center gap-1.5 mt-0.5">

@@ -65,13 +65,13 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
     const cleanPhone = ownerPhone.trim();
 
     if (!cleanRestName || !cleanEmail || !ownerPassword) {
-      setError('Please provide restaurant name, email, and password.');
+      setError('Please provide Business name, email, and password.');
       return;
     }
 
-    // 1. Restaurant Name: not above 69 characters
+    // 1. Business Name: not above 69 characters
     if (cleanRestName.length > 69) {
-      setError('Restaurant name cannot exceed 69 characters.');
+      setError('Business name cannot exceed 69 characters.');
       return;
     }
 
@@ -156,7 +156,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
               </span>
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-1">
-              Register Your Restaurant
+              Register Your Business
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Start your 3-day free trial. Instant setup for billing and orders.
@@ -233,7 +233,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Restaurant Name *
+                Business Name *
               </label>
               <span className={`text-[11px] ${restaurantName.length >= 69 ? 'text-amber-500 font-bold' : 'text-gray-400'}`}>
                 {restaurantName.length}/69
@@ -350,7 +350,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
               type="email"
               required
               autoComplete="email"
-              placeholder="owner@restaurant.com"
+              placeholder="owner@Business.com"
               value={ownerEmail}
               onChange={(e) => {
                 setOwnerEmail(e.target.value);

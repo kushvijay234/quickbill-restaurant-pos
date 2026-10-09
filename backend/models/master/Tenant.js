@@ -12,8 +12,8 @@ const TenantSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: [true, 'Restaurant name is required'],
-    maxlength: [69, 'Restaurant name cannot exceed 69 characters'],
+    required: [true, 'Business name is required'],
+    maxlength: [69, 'Business name cannot exceed 69 characters'],
     trim: true
   },
   ownerName: {

@@ -57,7 +57,7 @@ const Login: React.FC = () => {
           <div className="text-center flex flex-col items-center">
             <FastBilloLogo size={68} showBrandText={true} textSize="lg" className="flex-col !gap-2" />
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Sign in to your restaurant workspace
+              Sign in to your Business workspace
             </p>
           </div>
 
@@ -72,7 +72,7 @@ const Login: React.FC = () => {
                   type="email"
                   required
                   autoComplete="email"
-                  placeholder="owner@restaurant.com"
+                  placeholder="owner@Business.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -136,7 +136,7 @@ const Login: React.FC = () => {
               onClick={() => setShowRegisterModal(true)}
               className="w-full py-2 px-4 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 transition border border-indigo-200 dark:border-indigo-800"
             >
-              Register Your Restaurant (3-Day Free Trial)
+              Register Your Business (3-Day Free Trial)
             </button>
           </div>
         </div>
