@@ -137,7 +137,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <View style={[styles.menuIconWrap, { backgroundColor: '#ecfdf5' }]}>
                 <Ionicons name="restaurant-outline" size={18} color={COLORS.primary} />
               </View>
-              <Text style={[styles.menuItemText, { color: colors.text }]}>Menu & POS Billing</Text>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Create Bill </Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 
@@ -149,7 +149,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <View style={[styles.menuIconWrap, { backgroundColor: '#eff6ff' }]}>
                 <Ionicons name="receipt-outline" size={18} color={COLORS.accent} />
               </View>
-              <Text style={[styles.menuItemText, { color: colors.text }]}>Past Orders</Text>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Past Bills</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 
@@ -161,7 +161,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <View style={[styles.menuIconWrap, { backgroundColor: '#fef3c7' }]}>
                 <Ionicons name="fast-food-outline" size={18} color="#d97706" />
               </View>
-              <Text style={[styles.menuItemText, { color: colors.text }]}>Update Menu</Text>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Update Inventory</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 
@@ -218,7 +218,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <View style={[styles.menuIconWrap, { backgroundColor: '#f0fdf4' }]}>
                 <Ionicons name="settings-outline" size={18} color={COLORS.primary} />
               </View>
-              <Text style={[styles.menuItemText, { color: colors.text }]}>Restaurant Settings</Text>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Profile Settings</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 

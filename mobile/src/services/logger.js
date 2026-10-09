@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { storageService } from './storageService';
-import { getApiBaseUrl } from './api';
+import { DEFAULT_API_URL } from '../constants/config';
 
 let isDispatching = false;
 
@@ -46,7 +46,13 @@ const sendLog = async ({
       }
     }
 
-    const baseUrl = getApiBaseUrl();
+    let baseUrl = DEFAULT_API_URL;
+    try {
+      const savedUrl = await storageService.getCustomApiUrl();
+      if (savedUrl) baseUrl = savedUrl;
+    } catch {
+      // Fallback to default
+    }
 
     let stack = '';
     if (error instanceof Error && error.stack) {

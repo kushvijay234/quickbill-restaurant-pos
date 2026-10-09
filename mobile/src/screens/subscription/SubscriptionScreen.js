@@ -277,7 +277,7 @@ export const SubscriptionScreen = ({ navigation }) => {
               <View style={styles.featureItem}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
                 <Text style={[styles.featureText, { color: colors.text }]}>
-                  Up to {currentPlan.features.maxMenuItems} Menu Items
+                  Up to {currentPlan.features.maxMenuItems} Items
                 </Text>
               </View>
               <View style={styles.featureItem}>
@@ -466,7 +466,7 @@ export const SubscriptionScreen = ({ navigation }) => {
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="restaurant-outline" size={16} color={COLORS.primary} />
                   <Text style={[styles.modalFeatureText, { color: colors.text }]}>
-                    Up to {selectedPlan.features.maxMenuItems} Menu Items
+                    Up to {selectedPlan.features.maxMenuItems} Items
                   </Text>
                 </View>
                 <View style={styles.modalFeatureRow}>

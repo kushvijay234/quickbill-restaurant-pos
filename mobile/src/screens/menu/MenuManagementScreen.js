@@ -79,7 +79,7 @@ export const MenuManagementScreen = ({ navigation }) => {
   const handleDeleteItem = (item) => {
     const itemId = item?.id || item?._id;
     Alert.alert(
-      'Delete Menu Item',
+      'Delete Item',
       `Are you sure you want to delete "${item.name}"?\nThis action cannot be undone.`,
       [
         { text: 'Cancel', style: 'cancel' },
@@ -93,7 +93,7 @@ export const MenuManagementScreen = ({ navigation }) => {
               setItems((prev) => prev.filter((it) => (it?.id || it?._id) !== itemId));
               Alert.alert('Deleted', `"${item.name}" has been removed from the menu.`);
             } catch (err) {
-              Alert.alert('Error', err.message || 'Could not delete menu item');
+              Alert.alert('Error', err.message || 'Could not delete item');
             } finally {
               setActionLoadingId(null);
             }
@@ -238,7 +238,7 @@ export const MenuManagementScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Screen Header */}
       <ScreenHeader
-        title="Update Menu"
+        title="Update Inventory"
         subtitle="Manage items, prices & options"
         onBack={() => navigation.goBack()}
         rightAction={
@@ -257,7 +257,7 @@ export const MenuManagementScreen = ({ navigation }) => {
       <View style={[styles.topControls, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <View style={{ flex: 1 }}>
           <Input
-            placeholder="Search menu items..."
+            placeholder="Search items..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             leftIcon={<Ionicons name="search-outline" size={18} color={colors.textMuted} />}
@@ -292,7 +292,7 @@ export const MenuManagementScreen = ({ navigation }) => {
           ]}
         >
           <Text style={[styles.thText, styles.itemColTh, { color: colors.textMuted }]}>
-            MENU ITEM
+            ITEM
           </Text>
           <Text style={[styles.thText, styles.priceColTh, { color: colors.textMuted }]}>
             PRICE / OPTIONS
@@ -327,12 +327,12 @@ export const MenuManagementScreen = ({ navigation }) => {
               <View style={styles.emptyState}>
                 <Ionicons name="fast-food-outline" size={48} color={colors.textMuted} />
                 <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                  {searchQuery ? 'No matching menu items' : 'No menu items found'}
+                  {searchQuery ? 'No matching items' : 'No items found'}
                 </Text>
                 <Text style={[styles.emptySubtitle, { color: colors.textMuted }]}>
                   {searchQuery
                     ? 'Try searching with another keyword'
-                    : 'Tap "+ Add Item" above to add your first menu item'}
+                    : 'Tap "+ Add Item" above to add your first item'}
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.8}

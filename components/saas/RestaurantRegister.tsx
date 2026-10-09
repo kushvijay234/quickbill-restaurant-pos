@@ -285,7 +285,7 @@ const RestaurantRegister: React.FC<RestaurantRegisterProps> = ({ onClose, onSucc
               </div>
             </div>
             <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-              Your menu items, bills, and customer receipts will be billed natively in {selectedCountry.currency} ({selectedCountry.symbol}).
+              Your items, bills, and customer receipts will be billed natively in {selectedCountry.currency} ({selectedCountry.symbol}).
             </p>
           </div>
 

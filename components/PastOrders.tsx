@@ -59,7 +59,7 @@ const PastOrders: React.FC<PastOrdersProps> = ({ onViewOrder }) => {
         } catch (err) {
             const message = (err as Error).message;
             setError('Could not load order history.');
-            logger.error('Failed to fetch past orders', { error: message });
+            logger.error('Failed to fetch past bills', { error: message });
         } finally {
             setIsLoading(false);
         }

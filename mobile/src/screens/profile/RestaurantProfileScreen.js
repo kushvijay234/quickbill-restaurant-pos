@@ -83,7 +83,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
       });
 
       await refreshProfile();
-      Alert.alert('Success', 'Restaurant settings saved successfully!');
+      Alert.alert('Success', 'Profile settings saved successfully!');
     } catch (e) {
       Alert.alert('Error', e.message || 'Could not save profile');
     } finally {

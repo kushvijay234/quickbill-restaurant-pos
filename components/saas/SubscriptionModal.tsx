@@ -269,7 +269,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-emerald-500 font-bold">✓</span>
-                      <span>Up to {plan.features.maxMenuItems} Menu Items</span>
+                      <span>Up to {plan.features.maxMenuItems} Items</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={plan.features.tableManagement ? "text-emerald-500 font-bold" : "text-gray-400"}>

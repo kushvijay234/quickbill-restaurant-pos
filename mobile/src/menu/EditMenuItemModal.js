@@ -72,20 +72,20 @@ export const EditMenuItemModal = ({ visible, onClose, item, onUpdate }) => {
       });
       onClose();
     } catch (e) {
-      Alert.alert('Error', e.message || 'Failed to update menu item');
+      Alert.alert('Error', e.message || 'Failed to update Inventory item');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ModalContainer visible={visible} onClose={onClose} title="Edit Menu Item">
+    <ModalContainer visible={visible} onClose={onClose} title="Edit Item">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         <Input
           label="Item Name *"
           value={name}
           onChangeText={setName}
-          placeholder="Menu Item Name"
+          placeholder="Item Name"
         />
 
         <Input

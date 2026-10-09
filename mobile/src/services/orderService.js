@@ -9,7 +9,7 @@ export const orderService = {
   },
 
   /**
-   * Fetch past orders with optional pagination or filters
+   * Fetch past bills with optional pagination or filters
    */
   async getOrders(params = {}) {
     const query = new URLSearchParams();

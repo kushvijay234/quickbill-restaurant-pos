@@ -36,7 +36,7 @@ export const PastOrdersScreen = ({ navigation }) => {
       const data = await orderService.getOrders();
       setOrders(Array.isArray(data) ? data : data?.data || data?.orders || []);
     } catch (e) {
-      console.warn('Failed to load past orders:', e.message);
+      console.warn('Failed to load past bills:', e.message);
       setOrders([]);
     } finally {
       setLoading(false);

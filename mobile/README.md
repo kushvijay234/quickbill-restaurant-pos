@@ -19,7 +19,7 @@ mobile/src/
 │   ├── api.js             # HTTP client injecting JWT Bearer & X-Tenant-ID headers
 │   ├── authService.js     # Multi-tenant login & credential caching
 │   ├── menuService.js     # Menu CRUD & variant sync
-│   ├── orderService.js    # Order submission, count, and past orders fetching
+│   ├── orderService.js    # Order submission, count, and past bills fetching
 │   ├── profileService.js  # Restaurant details & tax configuration
 │   ├── adminService.js    # Staff user management & audit logs
 │   ├── subscriptionService.js # SaaS plan limits & days remaining
