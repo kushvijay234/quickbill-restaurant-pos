@@ -16,7 +16,7 @@ interface HeaderProps {
   onOpenProfile: () => void;
   user: IUser;
   onLogout: () => void;
-  onOpenPlans?: () => void;
+  onOpenPlans?: (tab?: 'plans' | 'history') => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewItem, theme, onToggleTheme, activeView, onViewChange, pastOrderCount, onOpenProfile, user, onLogout, onOpenPlans }) => {
@@ -134,14 +134,24 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
               Add Item
             </button>
           {onOpenPlans && (
-            <button
-              onClick={onOpenPlans}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-2 rounded-md hover:from-indigo-600 hover:to-purple-700 text-xs font-semibold shadow-sm transition"
-              title="Manage SaaS Plan & Razorpay Subscriptions"
-            >
-              <span>💳</span>
-              <span className="hidden lg:inline">Plans & Billing</span>
-            </button>
+            <>
+              <button
+                onClick={() => onOpenPlans('plans')}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-2 rounded-md hover:from-indigo-600 hover:to-purple-700 text-xs font-semibold shadow-sm transition"
+                title="Manage SaaS Plan & Razorpay Subscriptions"
+              >
+                <span>💳</span>
+                <span className="hidden lg:inline">Plans & Billing</span>
+              </button>
+              <button
+                onClick={() => onOpenPlans('history')}
+                className="flex items-center gap-1.5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-3 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-xs font-semibold shadow-sm transition"
+                title="View Subscription Payment & Invoices History"
+              >
+                <span>📜</span>
+                <span className="hidden lg:inline">Payment History</span>
+              </button>
+            </>
           )}
           <button
               onClick={onLogout}
@@ -189,6 +199,24 @@ const Header: React.FC<HeaderProps> = ({ currency, onCurrencyChange, onAddNewIte
                   </svg>
                   Add Item
                 </button>
+              {onOpenPlans && (
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    onClick={() => { onOpenPlans('plans'); setIsMobileMenuOpen(false); }}
+                    className="flex items-center justify-center gap-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-2 rounded-md text-xs font-semibold shadow-sm"
+                  >
+                    <span>💳</span>
+                    <span>Plans</span>
+                  </button>
+                  <button
+                    onClick={() => { onOpenPlans('history'); setIsMobileMenuOpen(false); }}
+                    className="flex items-center justify-center gap-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 px-3 py-2 rounded-md text-xs font-semibold shadow-sm"
+                  >
+                    <span>📜</span>
+                    <span>History</span>
+                  </button>
+                </div>
+              )}
              <div className="flex justify-around items-center">
                  <button
                     onClick={() => { onOpenProfile(); setIsMobileMenuOpen(false); }}

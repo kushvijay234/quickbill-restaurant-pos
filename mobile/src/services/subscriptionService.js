@@ -40,4 +40,30 @@ export const subscriptionService = {
   async verifyPayment(paymentData) {
     return await api.post('/subscription/verify-payment', paymentData);
   },
+
+  /**
+   * Get tenant payment & invoice transaction history
+   */
+  async getPaymentHistory() {
+    try {
+      const res = await api.get('/subscription/payment-history');
+      if (res && Array.isArray(res.transactions)) return res.transactions;
+      if (Array.isArray(res)) return res;
+      return [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Record or update payment event (cancellation, failure)
+   */
+  async recordPaymentEvent(eventData) {
+    try {
+      return await api.post('/subscription/record-payment-event', eventData);
+    } catch (e) {
+      console.warn('Failed to record payment event:', e.message);
+      return null;
+    }
+  },
 };

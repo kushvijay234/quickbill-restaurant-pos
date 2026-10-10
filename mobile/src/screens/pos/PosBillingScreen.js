@@ -15,6 +15,7 @@ import { SubscriptionBanner } from '../../components/saas/SubscriptionBanner';
 import { Input } from '../../components/common/Input';
 import { Button } from '../../components/common/Button';
 import { MenuItemCard } from '../../menu/MenuItemCard';
+import { MenuItemTableRow } from '../../menu/MenuItemTableRow';
 import { VariantPickerModal } from '../../menu/VariantPickerModal';
 import { AddMenuItemModal } from '../../menu/AddMenuItemModal';
 import { CartItemRow } from '../../components/cart/CartItemRow';
@@ -56,6 +57,7 @@ export const PosBillingScreen = ({ navigation }) => {
   const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState('card'); // 'card' | 'table'
 
   // Modals state
   const [variantModalItem, setVariantModalItem] = useState(null);
@@ -101,6 +103,16 @@ export const PosBillingScreen = ({ navigation }) => {
     });
   }, [menuItems, searchQuery]);
 
+  // Pre-calculate items in cart for live quantity badge in table view
+  const cartItemCounts = useMemo(() => {
+    const map = {};
+    for (const ci of cartItems) {
+      const id = String(ci.item?.id || ci.item?._id || '');
+      map[id] = (map[id] || 0) + (ci.quantity || 1);
+    }
+    return map;
+  }, [cartItems]);
+
   const handleCardAdd = (item) => {
     if (!item) return;
     const variants = Array.isArray(item.variants) ? item.variants : [];
@@ -131,7 +143,18 @@ export const PosBillingScreen = ({ navigation }) => {
           name: customer.name.trim() === '' ? 'Cash' : customer.name.trim(),
           mobile: customer.mobile.trim(),
         },
-        items: cartItems,
+        items: cartItems.map((ci) => ({
+          item: {
+            id: String(ci.item?.id || ci.item?._id || ''),
+            name: ci.item?.name || 'Item',
+            imageUrl: ci.item?.imageUrl || '',
+          },
+          selectedVariant: {
+            name: ci.selectedVariant?.name || 'Regular',
+            price: Number(ci.selectedVariant?.price) || 0,
+          },
+          quantity: ci.quantity || 1,
+        })),
         subtotal,
         tax,
         total,
@@ -190,20 +213,133 @@ export const PosBillingScreen = ({ navigation }) => {
             )}
           </View>
 
-          {/* Items Grid */}
+          {/* Below Search Bar: View Mode Switcher (Card vs Table) */}
+          <View style={styles.viewToggleRow}>
+            <View style={styles.itemCountBadge}>
+              <Ionicons name="restaurant-outline" size={13} color={colors.textMuted} />
+              <Text style={[styles.itemCountText, { color: colors.textMuted }]}>
+                {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'}
+              </Text>
+            </View>
+
+            {/* Segmented View Switcher Buttons */}
+            <View
+              style={[
+                styles.toggleContainer,
+                {
+                  backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9',
+                  borderColor: colors.border,
+                },
+              ]}
+            >
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setViewMode('card')}
+                style={[
+                  styles.toggleBtn,
+                  viewMode === 'card' && {
+                    backgroundColor: isDark ? colors.surface : '#ffffff',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  },
+                ]}
+                accessibilityLabel="Cards View"
+              >
+                <Ionicons
+                  name={viewMode === 'card' ? 'grid' : 'grid-outline'}
+                  size={16}
+                  color={viewMode === 'card' ? COLORS.primary : colors.textMuted}
+                />
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    {
+                      color: viewMode === 'card' ? COLORS.primary : colors.textMuted,
+                      fontWeight: viewMode === 'card' ? '700' : '500',
+                    },
+                  ]}
+                >
+                  Cards
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => setViewMode('table')}
+                style={[
+                  styles.toggleBtn,
+                  viewMode === 'table' && {
+                    backgroundColor: isDark ? colors.surface : '#ffffff',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 2,
+                    elevation: 2,
+                  },
+                ]}
+                accessibilityLabel="Table View"
+              >
+                <Ionicons
+                  name={viewMode === 'table' ? 'list' : 'list-outline'}
+                  size={17}
+                  color={viewMode === 'table' ? COLORS.primary : colors.textMuted}
+                />
+                <Text
+                  style={[
+                    styles.toggleBtnText,
+                    {
+                      color: viewMode === 'table' ? COLORS.primary : colors.textMuted,
+                      fontWeight: viewMode === 'table' ? '700' : '500',
+                    },
+                  ]}
+                >
+                  Table
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Table Column Headers (Only visible in Table mode) */}
+          {viewMode === 'table' && filteredItems.length > 0 && (
+            <View style={[styles.tableHeaderRow, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.tableHeaderCol, { flex: 2, color: colors.textMuted }]}>
+                ITEM
+              </Text>
+              <Text style={[styles.tableHeaderCol, { flex: 1, textAlign: 'right', paddingRight: 12, color: colors.textMuted }]}>
+                PRICE
+              </Text>
+              <Text style={[styles.tableHeaderCol, { width: 72, textAlign: 'right', paddingRight: 8, color: colors.textMuted }]}>
+                ACTION
+              </Text>
+            </View>
+          )}
+
+          {/* Items List (Card or Table) */}
           <FlatList
             data={filteredItems}
-            key={numColumns}
-            numColumns={numColumns}
-            columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
+            key={viewMode === 'card' ? `grid-${numColumns}` : 'table-1'}
+            numColumns={viewMode === 'card' ? numColumns : 1}
+            columnWrapperStyle={viewMode === 'card' && numColumns > 1 ? styles.columnWrapper : undefined}
             keyExtractor={(item, index) => item?.id || item?._id || String(index)}
-            renderItem={({ item }) => (
-              <MenuItemCard
-                item={item}
-                currency={currency}
-                onAddToCart={handleCardAdd}
-              />
-            )}
+            renderItem={({ item }) =>
+              viewMode === 'card' ? (
+                <MenuItemCard
+                  item={item}
+                  currency={currency}
+                  onAddToCart={handleCardAdd}
+                />
+              ) : (
+                <MenuItemTableRow
+                  item={item}
+                  currency={currency}
+                  onAddToCart={handleCardAdd}
+                  inCartCount={cartItemCounts[String(item?.id || item?._id || '')] || 0}
+                />
+              )
+            }
             contentContainerStyle={styles.listContent}
             refreshControl={
               <RefreshControl
@@ -428,6 +564,55 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '700',
+  },
+  viewToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
+  itemCountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  itemCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 3,
+    borderRadius: 9,
+    borderWidth: 1,
+    gap: 3,
+  },
+  toggleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 7,
+  },
+  toggleBtnText: {
+    fontSize: 12,
+  },
+  tableHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    marginTop: 2,
+  },
+  tableHeaderCol: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   listContent: {
     padding: 10,

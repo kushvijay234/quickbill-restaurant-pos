@@ -6,7 +6,14 @@ let activeBaseUrl = DEFAULT_API_URL;
 
 // Initialize custom URL if saved
 storageService.getCustomApiUrl().then((saved) => {
-  if (saved) activeBaseUrl = saved;
+  if (saved && !saved.includes('192.168.1.42') && !saved.includes('onrender.com')) {
+    activeBaseUrl = saved;
+  } else {
+    activeBaseUrl = DEFAULT_API_URL;
+    if (saved && saved.includes('onrender.com')) {
+      storageService.setCustomApiUrl(null).catch(() => {});
+    }
+  }
 });
 
 export const setApiBaseUrl = (url) => {

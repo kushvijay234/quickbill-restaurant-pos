@@ -44,15 +44,26 @@ export const CartProvider = ({ children }) => {
   const taxRate = profile?.taxRate ?? DEFAULT_TAX_RATE;
 
   const addToCart = (item, variant) => {
-    if (!variant) return;
+    if (!item || !variant) return;
 
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch {}
 
+    const resolvedId = String(item.id || item._id || '');
+    const normalizedItem = {
+      ...item,
+      id: resolvedId,
+      _id: resolvedId,
+      imageUrl: item.imageUrl || '',
+    };
+
     setItems((prevItems) => {
       const existingIndex = prevItems.findIndex(
-        (ci) => ci.item.id === item.id && ci.selectedVariant.name === variant.name
+        (ci) => {
+          const ciId = String(ci.item?.id || ci.item?._id || '');
+          return ciId === resolvedId && ci.selectedVariant?.name === variant.name;
+        }
       );
 
       if (existingIndex > -1) {
@@ -64,7 +75,7 @@ export const CartProvider = ({ children }) => {
         return next;
       }
 
-      return [...prevItems, { item, selectedVariant: variant, quantity: 1 }];
+      return [...prevItems, { item: normalizedItem, selectedVariant: variant, quantity: 1 }];
     });
   };
 
@@ -73,15 +84,16 @@ export const CartProvider = ({ children }) => {
       Haptics.selectionAsync();
     } catch {}
 
+    const targetId = String(itemId);
     setItems((prevItems) => {
       if (newQty <= 0) {
         return prevItems.filter(
-          (ci) => !(ci.item.id === itemId && ci.selectedVariant.name === variantName)
+          (ci) => !(String(ci.item?.id || ci.item?._id || '') === targetId && ci.selectedVariant?.name === variantName)
         );
       }
 
       return prevItems.map((ci) =>
-        ci.item.id === itemId && ci.selectedVariant.name === variantName
+        String(ci.item?.id || ci.item?._id || '') === targetId && ci.selectedVariant?.name === variantName
           ? { ...ci, quantity: newQty }
           : ci
       );
@@ -93,9 +105,10 @@ export const CartProvider = ({ children }) => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     } catch {}
 
+    const targetId = String(itemId);
     setItems((prevItems) =>
       prevItems.filter(
-        (ci) => !(ci.item.id === itemId && ci.selectedVariant.name === variantName)
+        (ci) => !(String(ci.item?.id || ci.item?._id || '') === targetId && ci.selectedVariant?.name === variantName)
       )
     );
   };

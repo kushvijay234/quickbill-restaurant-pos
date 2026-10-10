@@ -20,6 +20,7 @@ export const ModalContainer = ({
   visible,
   onClose,
   title,
+  subtitle,
   children,
   maxWidth = isTablet ? 540 : '92%',
 }) => {
@@ -31,6 +32,7 @@ export const ModalContainer = ({
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
@@ -48,7 +50,23 @@ export const ModalContainer = ({
             >
               {/* Header */}
               <View style={[styles.header, { borderBottomColor: colors.border }]}>
-                <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+                <View style={styles.titleContainer}>
+                  {typeof title === 'string' ? (
+                    <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+                      {title}
+                    </Text>
+                  ) : (
+                    title
+                  )}
+                  {subtitle ? (
+                    <Text
+                      style={[styles.subtitle, { color: colors.textSecondary }]}
+                      numberOfLines={1}
+                    >
+                      {subtitle}
+                    </Text>
+                  ) : null}
+                </View>
                 <TouchableOpacity
                   onPress={onClose}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -95,13 +113,26 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
   },
+  titleContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
   title: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2,
   },
   closeBtn: {
-    padding: 4,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    flexShrink: 0,
   },
   body: {
     padding: 18,

@@ -9,7 +9,7 @@ interface SuperAdminLoginProps {
 }
 
 const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onSuccess, onBackToPos }) => {
-  const [emailOrUsername, setEmailOrUsername] = useState('superadmin@fastbillo.com');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -91,7 +91,7 @@ const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onSuccess, onBackToPo
               value={emailOrUsername}
               onChange={(e) => { setEmailOrUsername(e.target.value); if (error) setError(''); }}
               className="w-full px-3.5 py-2.5 text-sm bg-gray-800/80 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-              placeholder="superadmin@fastbillo.com"
+              placeholder="Enter email or username"
             />
           </div>
 

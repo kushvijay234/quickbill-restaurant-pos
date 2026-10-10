@@ -1,29 +1,14 @@
-
-import { ICurrency } from './types';
-
-export const CURRENCIES: ICurrency[] = [
-  { code: 'INR', symbol: '₹', rate: 1 },
-  { code: 'USD', symbol: '$', rate: 1 },
-  { code: 'EUR', symbol: '€', rate: 1 },
-  { code: 'GBP', symbol: '£', rate: 1 },
-  { code: 'AED', symbol: 'د.إ', rate: 1 },
-  { code: 'CAD', symbol: '$', rate: 1 },
-  { code: 'AUD', symbol: '$', rate: 1 },
-  { code: 'SAR', symbol: '﷼', rate: 1 },
-  { code: 'SGD', symbol: '$', rate: 1 },
-];
-
-export const DEFAULT_TAX_RATE = 0.05; // 5% Tax Rate
-
-export const ORDERS_PER_PAGE = 20;
-
+/**
+ * Canonical SaaS Subscription Plans
+ * Kept identical across Web POS, Mobile App, and Super Admin Master DB
+ */
 export const CANONICAL_PLANS = [
   {
-    planId: 'starter' as const,
+    planId: 'starter',
     name: 'Starter Tier',
     description: 'Perfect for small cafes and food kiosks starting out',
     priceInr: 999,
-    billingPeriod: 'monthly' as const,
+    billingPeriod: 'monthly',
     features: {
       maxStaff: 3,
       maxMenuItems: 50,
@@ -31,15 +16,15 @@ export const CANONICAL_PLANS = [
       tableManagement: false,
       analytics: false,
       prioritySupport: false,
-      customBranding: false
-    }
+      customBranding: false,
+    },
   },
   {
-    planId: 'pro' as const,
+    planId: 'pro',
     name: 'Professional Business',
     description: 'Ideal for busy restaurants needing full table & order analytics',
     priceInr: 2499,
-    billingPeriod: 'monthly' as const,
+    billingPeriod: 'monthly',
     features: {
       maxStaff: 15,
       maxMenuItems: 500,
@@ -47,15 +32,15 @@ export const CANONICAL_PLANS = [
       tableManagement: true,
       analytics: true,
       prioritySupport: true,
-      customBranding: false
-    }
+      customBranding: false,
+    },
   },
   {
-    planId: 'enterprise' as const,
+    planId: 'enterprise',
     name: 'Enterprise Multi-Chain',
     description: 'For restaurant chains, franchise groups, and high-volume dining',
     priceInr: 5999,
-    billingPeriod: 'monthly' as const,
+    billingPeriod: 'monthly',
     features: {
       maxStaff: 100,
       maxMenuItems: 5000,
@@ -63,7 +48,7 @@ export const CANONICAL_PLANS = [
       tableManagement: true,
       analytics: true,
       prioritySupport: true,
-      customBranding: true
-    }
-  }
+      customBranding: true,
+    },
+  },
 ];

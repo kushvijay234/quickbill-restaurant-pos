@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ISuperAdminUser, ISuperAdminStats, ISuperAdminTenant } from '../../types';
 import FastBilloLogo from '../common/FastBilloLogo';
+import { CANONICAL_PLANS } from '../../constants';
 
 interface SuperAdminPortalProps {
   user: ISuperAdminUser;
@@ -26,12 +27,29 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
   // Modal input values
   const [extendDays, setExtendDays] = useState(14);
   const [selectedStatus, setSelectedStatus] = useState<string>('active');
-  const [selectedPlan, setSelectedPlan] = useState<string>('professional');
+  const [selectedPlan, setSelectedPlan] = useState<string>('pro');
+  const [plans, setPlans] = useState<any[]>(CANONICAL_PLANS);
 
   const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
   };
+
+  const fetchPlans = useCallback(async () => {
+    try {
+      const res = await fetch('/api/superadmin/plans', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.plans && data.plans.length > 0) {
+          setPlans(data.plans);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load plans in SuperAdmin', err);
+    }
+  }, [token]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -74,7 +92,8 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
   useEffect(() => {
     fetchStats();
     fetchTenants();
-  }, [fetchStats, fetchTenants]);
+    fetchPlans();
+  }, [fetchStats, fetchTenants, fetchPlans]);
 
   // Handle Extend Trial
   const handleExtendTrial = async () => {
@@ -322,6 +341,86 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
           </div>
         )}
 
+        {/* Platform Master Subscription Plans (Synchronized across Web, Mobile App & SuperAdmin) */}
+        <div className="bg-gray-900 p-5 rounded-2xl border border-gray-800 shadow-lg space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Platform Subscription Plans
+                </h2>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Synced across Web, App & DB
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Master pricing tiers and feature quotas unified across Web POS, Mobile App & SuperAdmin
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(plans.length > 0 ? plans : CANONICAL_PLANS).map((p: any) => (
+              <div
+                key={p.planId}
+                className="p-4 rounded-xl bg-gray-950 border border-gray-800 hover:border-purple-800/40 transition flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-white">{p.name}</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-purple-900/40 text-purple-300 border border-purple-700/50">
+                      {p.planId}
+                    </span>
+                  </div>
+                  <div className="text-xl font-black text-purple-400 mt-1">
+                    ₹{p.priceInr?.toLocaleString() || p.priceInr}
+                    <span className="text-xs font-normal text-gray-500"> / month</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1 min-h-[32px]">
+                    {p.description}
+                  </p>
+
+                  <div className="mt-3 space-y-1.5 text-xs text-gray-300 border-t border-gray-800/80 pt-2.5">
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-400">Staff Limit:</span>
+                      <span className="font-semibold text-white">{p.features?.maxStaff} Logins</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-400">Menu Items:</span>
+                      <span className="font-semibold text-white">Up to {p.features?.maxMenuItems}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-400">Monthly Orders:</span>
+                      <span className="font-semibold text-white">
+                        {p.features?.maxOrdersPerMonth === -1 ? 'Unlimited' : `${p.features?.maxOrdersPerMonth}/mo`}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-400">Table Management:</span>
+                      <span className={p.features?.tableManagement ? 'text-emerald-400 font-semibold' : 'text-gray-500'}>
+                        {p.features?.tableManagement ? '✓ Included' : '✗ Not included'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-400">Sales Analytics:</span>
+                      <span className={p.features?.analytics ? 'text-emerald-400 font-semibold' : 'text-gray-500'}>
+                        {p.features?.analytics ? '✓ Included' : '✗ Not included'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-gray-400">Support:</span>
+                      <span className={p.features?.prioritySupport ? 'text-purple-300 font-semibold' : 'text-gray-400'}>
+                        {p.features?.prioritySupport ? 'Priority VIP' : 'Standard'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Filter, Search & Refresh Controls */}
         <div className="bg-gray-900 p-4 rounded-2xl border border-gray-800 shadow-lg space-y-4">
           <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
@@ -462,7 +561,7 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
                             Status
                           </button>
                           <button
-                            onClick={() => { setActiveModalTenant(t); setSelectedPlan(t.activePlan || 'starter'); setModalType('overridePlan'); }}
+                            onClick={() => { setActiveModalTenant(t); setSelectedPlan(t.activePlan === 'professional' ? 'pro' : t.activePlan || 'pro'); setModalType('overridePlan'); }}
                             className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-purple-600/20 text-purple-300 hover:bg-purple-600 hover:text-white border border-purple-500/30 transition"
                             title="Assign subscription tier"
                           >
@@ -624,36 +723,60 @@ const SuperAdminPortal: React.FC<SuperAdminPortalProps> = ({ user, token, onLogo
             </div>
 
             <div className="space-y-2">
-              {[
-                { id: 'starter', name: 'Starter Plan', price: '₹999/mo', desc: '1 Outlet, Essential POS' },
-                { id: 'professional', name: 'Professional Plan', price: '₹1,999/mo', desc: 'Multiple Staff & Analytics' },
-                { id: 'enterprise', name: 'Enterprise Plan', price: '₹3,999/mo', desc: 'Unlimited outlets & VIP Support' }
-              ].map(plan => (
-                <label
-                  key={plan.id}
-                  className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
-                    selectedPlan === plan.id
-                      ? 'bg-purple-950/40 border-purple-500'
-                      : 'bg-gray-950 border-gray-800 hover:bg-gray-900'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="plan"
-                    value={plan.id}
-                    checked={selectedPlan === plan.id}
-                    onChange={() => setSelectedPlan(plan.id)}
-                    className="mt-1 text-purple-600"
-                  />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-white">{plan.name}</span>
-                      <span className="text-[11px] font-bold text-purple-400">{plan.price}</span>
+              {(plans.length > 0 ? plans : CANONICAL_PLANS).map((plan: any) => {
+                const isSelected = selectedPlan === plan.planId;
+                const formattedPrice = `₹${(plan.priceInr || 0).toLocaleString()}/mo`;
+                const maxOrders = plan.features?.maxOrdersPerMonth === -1 ? 'Unlimited orders' : `${plan.features?.maxOrdersPerMonth} orders`;
+                return (
+                  <label
+                    key={plan.planId}
+                    className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
+                      isSelected
+                        ? 'bg-purple-950/40 border-purple-500'
+                        : 'bg-gray-950 border-gray-800 hover:bg-gray-900'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="plan"
+                      value={plan.planId}
+                      checked={isSelected}
+                      onChange={() => setSelectedPlan(plan.planId)}
+                      className="mt-1 text-purple-600"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-white">{plan.name}</span>
+                        <span className="text-[11px] font-bold text-purple-400">{formattedPrice}</span>
+                      </div>
+                      <div className="text-[11px] text-gray-400 mt-0.5">
+                        {plan.description || `${plan.features?.maxStaff} staff, ${plan.features?.maxMenuItems} items, ${maxOrders}`}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">
+                          {plan.features?.maxStaff} Staff
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">
+                          {plan.features?.maxMenuItems} Items
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-300">
+                          {maxOrders}
+                        </span>
+                        {plan.features?.tableManagement && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-900/60 text-purple-300">
+                            Table Mgmt
+                          </span>
+                        )}
+                        {plan.features?.analytics && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-900/60 text-indigo-300">
+                            Analytics
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-[11px] text-gray-400 mt-0.5">{plan.desc}</div>
-                  </div>
-                </label>
-              ))}
+                  </label>
+                );
+              })}
             </div>
 
             <div className="flex items-center gap-2 pt-2">

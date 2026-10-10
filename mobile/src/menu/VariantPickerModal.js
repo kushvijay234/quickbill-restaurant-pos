@@ -14,7 +14,12 @@ export const VariantPickerModal = ({ visible, onClose, item, currency, onSelectV
   const variants = item.variants || [];
 
   return (
-    <ModalContainer visible={visible} onClose={onClose} title={`Select Option: ${item.name}`}>
+    <ModalContainer
+      visible={visible}
+      onClose={onClose}
+      title="Select Options"
+      subtitle={item.name}
+    >
       <View style={styles.container}>
         <Text style={[styles.subtitle, { color: colors.textMuted }]}>
           Choose size or portion to add to order:

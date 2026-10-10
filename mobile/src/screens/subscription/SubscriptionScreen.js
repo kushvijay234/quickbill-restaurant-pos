@@ -15,47 +15,15 @@ import { ScreenHeader } from '../../components/common/ScreenHeader';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { ModalContainer } from '../../components/common/ModalContainer';
+import { RazorpayCheckoutModal } from '../../components/subscription/RazorpayCheckoutModal';
 import { useTheme } from '../../context/ThemeContext';
 import { subscriptionService } from '../../services/subscriptionService';
 import { storageService } from '../../services/storageService';
 import { getApiBaseUrl } from '../../services/api';
 import { COLORS } from '../../constants/colors';
+import { CANONICAL_PLANS } from '../../constants/plans';
 
-const DEFAULT_PLANS_FALLBACK = [
-  {
-    planId: 'starter',
-    name: 'Starter Essential',
-    description: 'Perfect for small cafes and food kiosks starting out',
-    priceInr: 999,
-    features: {
-      maxStaff: 3,
-      maxMenuItems: 50,
-      maxOrdersPerMonth: 500,
-    },
-  },
-  {
-    planId: 'pro',
-    name: 'Professional Business',
-    description: 'Ideal for busy restaurants needing full table & order analytics',
-    priceInr: 2499,
-    features: {
-      maxStaff: 15,
-      maxMenuItems: 500,
-      maxOrdersPerMonth: 'Unlimited',
-    },
-  },
-  {
-    planId: 'enterprise',
-    name: 'Enterprise Multi-Chain',
-    description: 'For restaurant chains, franchise groups, and high-volume dining',
-    priceInr: 5999,
-    features: {
-      maxStaff: 100,
-      maxMenuItems: 5000,
-      maxOrdersPerMonth: 'Unlimited',
-    },
-  },
-];
+const DEFAULT_PLANS_FALLBACK = CANONICAL_PLANS;
 
 export const SubscriptionScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -63,11 +31,13 @@ export const SubscriptionScreen = ({ navigation }) => {
   const [plans, setPlans] = useState(DEFAULT_PLANS_FALLBACK);
   const [loading, setLoading] = useState(false);
 
-  // Upgrade & Payment Modal State
+  // Upgrade & In-App Payment State
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly'); // 'monthly' | 'yearly'
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentStep, setPaymentStep] = useState('select'); // 'select' | 'gateway_opened'
+  const [checkoutModalVisible, setCheckoutModalVisible] = useState(false);
+  const [checkoutOrderData, setCheckoutOrderData] = useState(null);
+  const [checkoutUrl, setCheckoutUrl] = useState('');
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -109,10 +79,9 @@ export const SubscriptionScreen = ({ navigation }) => {
   const handleUpgrade = (plan) => {
     setSelectedPlan(plan);
     setBillingCycle('monthly');
-    setPaymentStep('select');
   };
 
-  // 1. Launch Razorpay Gateway via backend order
+  // 1. Launch Razorpay Direct In-App Checkout
   const handlePayWithRazorpay = async () => {
     if (!selectedPlan) return;
     try {
@@ -130,16 +99,18 @@ export const SubscriptionScreen = ({ navigation }) => {
       const tenantSlug = await storageService.getTenantSlug();
       const apiBase = getApiBaseUrl().replace(/\/api\/?$/, '');
 
-      const checkoutUrl = `${apiBase}/api/subscription/checkout-page?orderId=${encodeURIComponent(
+      const checkoutPageUrl = `${apiBase}/api/subscription/checkout-page?orderId=${encodeURIComponent(
         orderRes.orderId
       )}&keyId=${encodeURIComponent(orderRes.keyId || '')}&amount=${orderRes.amount}&planId=${encodeURIComponent(
         selectedPlan.planId
       )}&planName=${encodeURIComponent(selectedPlan.name)}&tenantSlug=${encodeURIComponent(
         tenantSlug || ''
-      )}&token=${encodeURIComponent(token || '')}&billingCycle=${billingCycle}`;
+      )}&token=${encodeURIComponent(token || '')}&billingCycle=${billingCycle}&inApp=true`;
 
-      await Linking.openURL(checkoutUrl);
-      setPaymentStep('gateway_opened');
+      setCheckoutOrderData(orderRes);
+      setCheckoutUrl(checkoutPageUrl);
+      setSelectedPlan(null);
+      setCheckoutModalVisible(true);
     } catch (err) {
       Alert.alert('Payment Error', err.message || 'Failed to initiate Razorpay checkout');
     } finally {
@@ -147,65 +118,16 @@ export const SubscriptionScreen = ({ navigation }) => {
     }
   };
 
-  // 2. Check and sync payment status after returning from gateway
-  const handleCheckPaymentStatus = async () => {
-    try {
-      setIsProcessing(true);
-      const current = await subscriptionService.getCurrentSubscription();
-      if (
-        current?.tenant?.activePlan === selectedPlan?.planId ||
-        current?.tenant?.status === 'active'
-      ) {
-        setSubData(current);
-        setSelectedPlan(null);
-        setPaymentStep('select');
-        Alert.alert(
-          '🎉 Subscription Active!',
-          `Your restaurant is now active on the ${selectedPlan?.name || 'selected'} plan!`
-        );
-      } else {
-        Alert.alert(
-          'Payment Status',
-          'Payment verification is pending on the server. If you completed payment, please wait a moment and tap verify again, or tap instant test activation below.'
-        );
-      }
-    } catch (err) {
-      Alert.alert('Status Check Error', err.message || 'Could not check subscription status');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // 3. Instant developer sandbox test activation
-  const handleInstantDevActivation = async () => {
-    if (!selectedPlan) return;
-    try {
-      setIsProcessing(true);
-      const orderRes = await subscriptionService.createOrder({
-        planId: selectedPlan.planId,
-        billingCycle,
-      });
-
-      const verifyRes = await subscriptionService.verifyPayment({
-        razorpay_order_id: orderRes.orderId || `order_mock_${Date.now()}`,
-        razorpay_payment_id: `pay_mock_${Date.now()}`,
-        razorpay_signature: 'mock_signature',
-        planId: selectedPlan.planId,
-        billingCycle,
-      });
-
-      await fetchSubscription();
-      setSelectedPlan(null);
-      setPaymentStep('select');
-      Alert.alert(
-        '🚀 Plan Upgraded Successfully!',
-        verifyRes.message || `Your account has been upgraded to ${selectedPlan.name}!`
-      );
-    } catch (err) {
-      Alert.alert('Upgrade Error', err.message || 'Failed to complete test activation');
-    } finally {
-      setIsProcessing(false);
-    }
+  // 2. Handle automatic verification success from In-App Razorpay Checkout
+  const handlePaymentSuccess = async (verifyRes) => {
+    setCheckoutModalVisible(false);
+    const upgradedPlanName = checkoutOrderData?.plan?.name || selectedPlan?.name || 'selected';
+    setSelectedPlan(null);
+    await fetchSubscription();
+    Alert.alert(
+      '🎉 Subscription Activated!',
+      verifyRes?.message || `Your restaurant is now active on the ${upgradedPlanName} plan!`
+    );
   };
 
   return (
@@ -277,17 +199,77 @@ export const SubscriptionScreen = ({ navigation }) => {
               <View style={styles.featureItem}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
                 <Text style={[styles.featureText, { color: colors.text }]}>
-                  Up to {currentPlan.features.maxMenuItems} Items
+                  Up to {currentPlan.features.maxMenuItems} Menu Items
                 </Text>
               </View>
               <View style={styles.featureItem}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
                 <Text style={[styles.featureText, { color: colors.text }]}>
-                  Up to {currentPlan.features.maxOrdersPerMonth} Orders / Month
+                  {currentPlan.features.maxOrdersPerMonth === -1 || currentPlan.features.maxOrdersPerMonth === 'Unlimited'
+                    ? 'Unlimited Orders'
+                    : `Up to ${currentPlan.features.maxOrdersPerMonth} Orders / Month`}
+                </Text>
+              </View>
+              {currentPlan.features.tableManagement ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Table Management Included
+                  </Text>
+                </View>
+              ) : null}
+              {currentPlan.features.analytics ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Advanced Sales Analytics
+                  </Text>
+                </View>
+              ) : null}
+              {currentPlan.features.prioritySupport ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Priority Support
+                  </Text>
+                </View>
+              ) : null}
+              {currentPlan.features.customBranding ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Custom Restaurant Branding
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          )}
+
+          {/* Payment History Navigation Row */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={[
+              styles.historyLinkBtn,
+              {
+                borderColor: colors.border,
+                backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc',
+              },
+            ]}
+            onPress={() => navigation.navigate('PaymentHistory')}
+          >
+            <View style={styles.historyLinkLeft}>
+              <View style={[styles.historyIconCircle, { backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ecfdf5' }]}>
+                <Ionicons name="receipt-outline" size={18} color={COLORS.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.historyLinkTitle, { color: colors.text }]}>Payment History & Invoices</Text>
+                <Text style={[styles.historyLinkDesc, { color: colors.textMuted }]}>
+                  View all successful, cancelled & failed transactions
                 </Text>
               </View>
             </View>
-          )}
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
         </View>
 
         {/* Available Plans */}
@@ -298,6 +280,11 @@ export const SubscriptionScreen = ({ navigation }) => {
             {plans.map((p) => {
               const isCurrent =
                 (currentPlan?.planId || tenant?.activePlan) === p.planId;
+              const maxOrdersLabel =
+                p.features?.maxOrdersPerMonth === -1 || p.features?.maxOrdersPerMonth === 'Unlimited'
+                  ? 'Unlimited Orders'
+                  : `${p.features?.maxOrdersPerMonth} Orders/mo`;
+
               return (
                 <View
                   key={p.planId}
@@ -326,6 +313,41 @@ export const SubscriptionScreen = ({ navigation }) => {
                   <Text style={[styles.planDesc, { color: colors.textMuted }]}>
                     {p.description}
                   </Text>
+
+                  {/* Feature Highlights Pills */}
+                  {p.features && (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                      <View style={{ backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>
+                          {p.features.maxStaff} Staff
+                        </Text>
+                      </View>
+                      <View style={{ backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>
+                          {p.features.maxMenuItems} Items
+                        </Text>
+                      </View>
+                      <View style={{ backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>
+                          {maxOrdersLabel}
+                        </Text>
+                      </View>
+                      {p.features.tableManagement ? (
+                        <View style={{ backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ecfdf5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                          <Text style={{ fontSize: 11, color: COLORS.primary, fontWeight: '700' }}>
+                            Table Mgmt
+                          </Text>
+                        </View>
+                      ) : null}
+                      {p.features.analytics ? (
+                        <View style={{ backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#eef2ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                          <Text style={{ fontSize: 11, color: '#4f46e5', fontWeight: '700' }}>
+                            Analytics
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  )}
 
                   {!isCurrent && (
                     <Button
@@ -455,7 +477,7 @@ export const SubscriptionScreen = ({ navigation }) => {
                 ]}
               >
                 <Text style={[styles.modalFeaturesTitle, { color: colors.textMuted }]}>
-                  INCLUDED QUOTAS
+                  INCLUDED QUOTAS & FEATURES
                 </Text>
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="people-outline" size={16} color={COLORS.primary} />
@@ -466,17 +488,49 @@ export const SubscriptionScreen = ({ navigation }) => {
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="restaurant-outline" size={16} color={COLORS.primary} />
                   <Text style={[styles.modalFeatureText, { color: colors.text }]}>
-                    Up to {selectedPlan.features.maxMenuItems} Items
+                    Up to {selectedPlan.features.maxMenuItems} Menu Items
                   </Text>
                 </View>
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="receipt-outline" size={16} color={COLORS.primary} />
                   <Text style={[styles.modalFeatureText, { color: colors.text }]}>
-                    {selectedPlan.features.maxOrdersPerMonth === 'Unlimited'
+                    {selectedPlan.features.maxOrdersPerMonth === 'Unlimited' || selectedPlan.features.maxOrdersPerMonth === -1
                       ? 'Unlimited Orders'
                       : `Up to ${selectedPlan.features.maxOrdersPerMonth} Orders / Month`}
                   </Text>
                 </View>
+                {selectedPlan.features.tableManagement ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="grid-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Table Management Included
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedPlan.features.analytics ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="bar-chart-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Advanced Sales Analytics
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedPlan.features.prioritySupport ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="headset-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Priority Support
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedPlan.features.customBranding ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="color-palette-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Custom Restaurant Branding
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             )}
 
@@ -498,67 +552,15 @@ export const SubscriptionScreen = ({ navigation }) => {
               </Text>
             </View>
 
-            {/* Gateway status notice */}
-            {paymentStep === 'gateway_opened' && (
-              <View style={styles.gatewayNotice}>
-                <Ionicons name="information-circle" size={20} color="#0284c7" />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.gatewayNoticeTitle}>Razorpay Gateway Opened</Text>
-                  <Text style={styles.gatewayNoticeDesc}>
-                    Complete your payment in the browser, then tap "Verify Payment" below.
-                  </Text>
-                </View>
-              </View>
-            )}
-
             {/* Action Buttons */}
             <View style={styles.actionSection}>
-              {paymentStep === 'gateway_opened' ? (
-                <>
-                  <Button
-                    title="Verify Payment & Activate"
-                    onPress={handleCheckPaymentStatus}
-                    loading={isProcessing}
-                    size="lg"
-                    icon={<Ionicons name="checkmark-done" size={18} color="#ffffff" />}
-                  />
-                  <TouchableOpacity
-                    onPress={handlePayWithRazorpay}
-                    disabled={isProcessing}
-                    style={[styles.secondaryActionBtn, { borderColor: colors.border }]}
-                  >
-                    <Text style={[styles.secondaryActionText, { color: colors.text }]}>
-                      Re-open Razorpay Checkout
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <>
-                  <Button
-                    title={`Pay ₹${calculatePlanPrice(selectedPlan, billingCycle)} with Razorpay`}
-                    onPress={handlePayWithRazorpay}
-                    loading={isProcessing}
-                    size="lg"
-                    icon={<Ionicons name="card-outline" size={18} color="#ffffff" />}
-                  />
-                  <TouchableOpacity
-                    onPress={handleInstantDevActivation}
-                    disabled={isProcessing}
-                    style={[
-                      styles.instantTestBtn,
-                      {
-                        borderColor: isDark ? '#047857' : '#bbf7d0',
-                        backgroundColor: isDark ? '#064e3b' : '#f0fdf4',
-                      },
-                    ]}
-                  >
-                    <Ionicons name="flash" size={16} color={COLORS.primary} />
-                    <Text style={styles.instantTestBtnText}>
-                      Instant Test Activation (Dev Sandbox)
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <Button
+                title={`Pay ₹${calculatePlanPrice(selectedPlan, billingCycle)} with Razorpay`}
+                onPress={handlePayWithRazorpay}
+                loading={isProcessing}
+                size="lg"
+                icon={<Ionicons name="card-outline" size={18} color="#ffffff" />}
+              />
             </View>
 
             {/* Security Footer */}
@@ -571,6 +573,18 @@ export const SubscriptionScreen = ({ navigation }) => {
           </ScrollView>
         </ModalContainer>
       )}
+
+      {/* Direct In-App Razorpay Checkout Modal */}
+      <RazorpayCheckoutModal
+        visible={checkoutModalVisible}
+        onClose={() => setCheckoutModalVisible(false)}
+        plan={selectedPlan}
+        billingCycle={billingCycle}
+        orderData={checkoutOrderData}
+        checkoutUrl={checkoutUrl}
+        onSuccess={handlePaymentSuccess}
+        onError={(errMsg) => console.warn('[In-App Checkout Error]:', errMsg)}
+      />
     </View>
   );
 };
@@ -856,5 +870,36 @@ const styles = StyleSheet.create({
   securityText: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  historyLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 6,
+  },
+  historyLinkLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
+    marginRight: 8,
+  },
+  historyIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyLinkTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  historyLinkDesc: {
+    fontSize: 11,
+    marginTop: 1,
   },
 });

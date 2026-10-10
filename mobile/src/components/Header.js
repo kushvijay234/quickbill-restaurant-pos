@@ -54,13 +54,6 @@ export const Header = ({ onAddItem, rightAction }) => {
                     {tenantSlug}
                   </Text>
                 ) : null}
-                {user?.role ? (
-                  <Badge
-                    label={user.role}
-                    variant={user.role === 'admin' ? 'role' : 'info'}
-                    size="sm"
-                  />
-                ) : null}
               </View>
             </View>
           </TouchableOpacity>
