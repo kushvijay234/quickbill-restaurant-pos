@@ -34,10 +34,10 @@ export const MainTabNavigator = () => {
           fontWeight: '700',
         },
         tabBarIcon: ({ color, size, focused }) => {
-          let iconName = 'restaurant-outline';
+          let iconName = 'calculator-outline';
 
           if (route.name === 'Menu') {
-            iconName = focused ? 'restaurant' : 'restaurant-outline';
+            iconName = focused ? 'calculator' : 'calculator-outline';
           } else if (route.name === 'Orders') {
             iconName = focused ? 'receipt' : 'receipt-outline';
           } else if (route.name === 'Admin') {
@@ -48,8 +48,16 @@ export const MainTabNavigator = () => {
         },
       })}
     >
-      <Tab.Screen name="Menu" component={PosBillingScreen} />
-      <Tab.Screen name="Orders" component={PastOrdersScreen} />
+      <Tab.Screen
+        name="Menu"
+        component={PosBillingScreen}
+        options={{ tabBarLabel: 'Create Bill' }}
+      />
+      <Tab.Screen
+        name="Orders"
+        component={PastOrdersScreen}
+        options={{ tabBarLabel: 'All Bills' }}
+      />
       {isAdmin ? (
         <Tab.Screen name="Admin" component={AdminDashboardScreen} />
       ) : null}

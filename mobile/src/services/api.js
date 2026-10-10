@@ -6,7 +6,11 @@ let activeBaseUrl = DEFAULT_API_URL;
 
 // Initialize custom URL if saved
 storageService.getCustomApiUrl().then((saved) => {
-  if (saved) activeBaseUrl = saved;
+  if (saved && !saved.includes('192.168.1.42')) {
+    activeBaseUrl = saved;
+  } else {
+    activeBaseUrl = DEFAULT_API_URL;
+  }
 });
 
 export const setApiBaseUrl = (url) => {

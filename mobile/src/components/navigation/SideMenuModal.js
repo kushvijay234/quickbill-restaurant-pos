@@ -135,9 +135,9 @@ export const SideMenuModal = ({ visible, onClose }) => {
               style={[styles.menuItem, { backgroundColor: isDark ? colors.surfaceSubtle : '#f8fafc' }]}
             >
               <View style={[styles.menuIconWrap, { backgroundColor: '#ecfdf5' }]}>
-                <Ionicons name="restaurant-outline" size={18} color={COLORS.primary} />
+                <Ionicons name="calculator-outline" size={18} color={COLORS.primary} />
               </View>
-              <Text style={[styles.menuItemText, { color: colors.text }]}>Create Bill </Text>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>Create Bill</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 
@@ -149,7 +149,7 @@ export const SideMenuModal = ({ visible, onClose }) => {
               <View style={[styles.menuIconWrap, { backgroundColor: '#eff6ff' }]}>
                 <Ionicons name="receipt-outline" size={18} color={COLORS.accent} />
               </View>
-              <Text style={[styles.menuItemText, { color: colors.text }]}>Past Bills</Text>
+              <Text style={[styles.menuItemText, { color: colors.text }]}>All Bills</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 

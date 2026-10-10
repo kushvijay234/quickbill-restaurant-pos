@@ -238,9 +238,9 @@ export const RestaurantProfileScreen = ({ navigation }) => {
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <Text style={[styles.accountUserName, { color: colors.text }]}>
-                  {user?.username || user?.name || 'Staff Member'}
+                  {user?.username || user?.name || 'Active User'}
                 </Text>
-                {user?.role ? (
+                {user?.role && user.role.toLowerCase() !== 'staff' ? (
                   <Badge
                     label={user.role.toUpperCase()}
                     variant={user.role === 'admin' ? 'role' : 'info'}
