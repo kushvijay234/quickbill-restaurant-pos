@@ -127,7 +127,7 @@ router.post('/', async (req, res) => {
         }
 
         // Extract item IDs and query authoritative menu items from tenant database
-        const itemIds = items.map(oi => oi.item?.id).filter(Boolean);
+        const itemIds = items.map(oi => (oi.item?.id || oi.item?._id || oi.id)).filter(Boolean);
         const dbItems = await MenuItem.find({ _id: { $in: itemIds } });
         const dbItemMap = new Map(dbItems.map(item => [item._id.toString(), item]));
 
@@ -135,7 +135,8 @@ router.post('/', async (req, res) => {
         const verifiedItems = [];
 
         for (const orderItem of items) {
-            const itemId = orderItem.item?.id;
+            const rawId = orderItem.item?.id || orderItem.item?._id || orderItem.id;
+            const itemId = rawId ? String(rawId) : '';
             const variantName = orderItem.selectedVariant?.name;
             const quantity = parseInt(orderItem.quantity, 10);
 
@@ -148,7 +149,10 @@ router.post('/', async (req, res) => {
                 return res.status(400).json({ message: `Item "${orderItem.item?.name || itemId}" not found in your restaurant menu.` });
             }
 
-            const dbVariant = dbItem.variants.find(v => v.name === variantName);
+            let dbVariant = dbItem.variants.find(v => v.name === variantName);
+            if (!dbVariant && dbItem.variants && dbItem.variants.length > 0) {
+                dbVariant = dbItem.variants[0];
+            }
             if (!dbVariant) {
                 return res.status(400).json({ message: `Variant "${variantName}" not found for item "${dbItem.name}".` });
             }

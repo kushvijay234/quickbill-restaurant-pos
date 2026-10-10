@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { ISubscriptionPlan, ISubscriptionDetails } from '../../types';
+import { CANONICAL_PLANS } from '../../constants';
 
 interface SubscriptionModalProps {
   onClose: () => void;
@@ -8,7 +9,7 @@ interface SubscriptionModalProps {
 }
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSuccess }) => {
-  const [plans, setPlans] = useState<ISubscriptionPlan[]>([]);
+  const [plans, setPlans] = useState<ISubscriptionPlan[]>(CANONICAL_PLANS as ISubscriptionPlan[]);
   const [currentSub, setCurrentSub] = useState<ISubscriptionDetails | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
         api.get('/subscription/plans'),
         api.get('/subscription/current')
       ]);
-      setPlans(plansRes.plans || []);
+      const activePlans = (plansRes.plans && plansRes.plans.length > 0) ? plansRes.plans : CANONICAL_PLANS;
+      setPlans(activePlans);
       setCurrentSub(currentRes);
     } catch (err: any) {
       setError(err.message || 'Failed to load subscription data');
@@ -288,6 +290,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
                         {plan.features.prioritySupport ? '✓' : '✗'}
                       </span>
                       <span>Priority Support</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={plan.features.customBranding ? "text-emerald-500 font-bold" : "text-gray-400"}>
+                        {plan.features.customBranding ? '✓' : '✗'}
+                      </span>
+                      <span>Custom Restaurant Branding</span>
                     </div>
                   </div>
                 </div>

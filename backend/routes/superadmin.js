@@ -24,9 +24,7 @@ router.post('/login', async (req, res) => {
     const superAdmin = await SuperAdmin.findOne({
       $or: [
         { email: rawInput },
-        { username: rawInput },
-        ...(rawInput === 'superadmin@fastbillo.com' ? [{ email: 'superadmin@restobill.com' }] : []),
-        ...(rawInput === 'superadmin@restobill.com' ? [{ email: 'superadmin@fastbillo.com' }] : [])
+        { username: rawInput }
       ]
     }).select('+password');
 
@@ -119,13 +117,13 @@ router.get('/stats', async (req, res) => {
     // Calculate Estimated MRR based on active tenants and plan pricing
     const planPriceMap = {};
     plans.forEach(p => {
-      planPriceMap[p.planId] = p.priceMonthly || 0;
+      planPriceMap[p.planId] = p.priceInr || 0;
     });
 
     const activeSubscriptions = await Subscription.find({ status: 'active' });
     let estimatedMRR = 0;
     activeSubscriptions.forEach(sub => {
-      estimatedMRR += planPriceMap[sub.planId] || 999;
+      estimatedMRR += planPriceMap[sub.planId] || (p => (p === 'enterprise' ? 5999 : p === 'pro' ? 2499 : 999))(sub.planId);
     });
 
     res.json({
@@ -331,8 +329,9 @@ router.post('/tenants/:id/extend-trial', async (req, res) => {
  * @access  SuperAdmin
  */
 router.post('/tenants/:id/override-plan', async (req, res) => {
-  const { planId, months = 1 } = req.body;
-  const validPlans = ['starter', 'pro', 'professional', 'enterprise'];
+  let { planId, months = 1 } = req.body;
+  if (planId === 'professional') planId = 'pro';
+  const validPlans = ['starter', 'pro', 'enterprise'];
 
   if (!validPlans.includes(planId)) {
     return res.status(400).json({ message: `Invalid plan. Must be one of: ${validPlans.join(', ')}` });
@@ -386,10 +385,43 @@ router.post('/tenants/:id/override-plan', async (req, res) => {
 router.get('/plans', async (req, res) => {
   try {
     const { Plan } = getMasterModels();
-    const plans = await Plan.find().sort({ priceMonthly: 1 });
+    const plans = await Plan.find().sort({ priceInr: 1 });
     res.json({ success: true, plans });
   } catch (err) {
     res.status(500).json({ message: 'Failed to retrieve plans' });
+  }
+});
+
+/**
+ * @desc    Update Platform Plan Details
+ * @route   PUT /api/superadmin/plans/:planId
+ * @access  SuperAdmin
+ */
+router.put('/plans/:planId', async (req, res) => {
+  const { planId } = req.params;
+  const { name, description, priceInr, features } = req.body;
+
+  try {
+    const { Plan } = getMasterModels();
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (typeof priceInr === 'number') updateData.priceInr = priceInr;
+    if (features) updateData.features = features;
+
+    const updatedPlan = await Plan.findOneAndUpdate(
+      { planId },
+      { $set: updateData },
+      { new: true }
+    );
+
+    if (!updatedPlan) {
+      return res.status(404).json({ message: 'Plan not found' });
+    }
+
+    res.json({ success: true, message: `Plan '${planId}' updated successfully`, plan: updatedPlan });
+  } catch (err) {
+    res.status(500).json({ message: err.message || 'Failed to update plan' });
   }
 });
 

@@ -20,42 +20,9 @@ import { subscriptionService } from '../../services/subscriptionService';
 import { storageService } from '../../services/storageService';
 import { getApiBaseUrl } from '../../services/api';
 import { COLORS } from '../../constants/colors';
+import { CANONICAL_PLANS } from '../../constants/plans';
 
-const DEFAULT_PLANS_FALLBACK = [
-  {
-    planId: 'starter',
-    name: 'Starter Essential',
-    description: 'Perfect for small cafes and food kiosks starting out',
-    priceInr: 999,
-    features: {
-      maxStaff: 3,
-      maxMenuItems: 50,
-      maxOrdersPerMonth: 500,
-    },
-  },
-  {
-    planId: 'pro',
-    name: 'Professional Business',
-    description: 'Ideal for busy restaurants needing full table & order analytics',
-    priceInr: 2499,
-    features: {
-      maxStaff: 15,
-      maxMenuItems: 500,
-      maxOrdersPerMonth: 'Unlimited',
-    },
-  },
-  {
-    planId: 'enterprise',
-    name: 'Enterprise Multi-Chain',
-    description: 'For restaurant chains, franchise groups, and high-volume dining',
-    priceInr: 5999,
-    features: {
-      maxStaff: 100,
-      maxMenuItems: 5000,
-      maxOrdersPerMonth: 'Unlimited',
-    },
-  },
-];
+const DEFAULT_PLANS_FALLBACK = CANONICAL_PLANS;
 
 export const SubscriptionScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -277,15 +244,49 @@ export const SubscriptionScreen = ({ navigation }) => {
               <View style={styles.featureItem}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
                 <Text style={[styles.featureText, { color: colors.text }]}>
-                  Up to {currentPlan.features.maxMenuItems} Items
+                  Up to {currentPlan.features.maxMenuItems} Menu Items
                 </Text>
               </View>
               <View style={styles.featureItem}>
                 <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
                 <Text style={[styles.featureText, { color: colors.text }]}>
-                  Up to {currentPlan.features.maxOrdersPerMonth} Orders / Month
+                  {currentPlan.features.maxOrdersPerMonth === -1 || currentPlan.features.maxOrdersPerMonth === 'Unlimited'
+                    ? 'Unlimited Orders'
+                    : `Up to ${currentPlan.features.maxOrdersPerMonth} Orders / Month`}
                 </Text>
               </View>
+              {currentPlan.features.tableManagement ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Table Management Included
+                  </Text>
+                </View>
+              ) : null}
+              {currentPlan.features.analytics ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Advanced Sales Analytics
+                  </Text>
+                </View>
+              ) : null}
+              {currentPlan.features.prioritySupport ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Priority Support
+                  </Text>
+                </View>
+              ) : null}
+              {currentPlan.features.customBranding ? (
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  <Text style={[styles.featureText, { color: colors.text }]}>
+                    Custom Restaurant Branding
+                  </Text>
+                </View>
+              ) : null}
             </View>
           )}
         </View>
@@ -298,6 +299,11 @@ export const SubscriptionScreen = ({ navigation }) => {
             {plans.map((p) => {
               const isCurrent =
                 (currentPlan?.planId || tenant?.activePlan) === p.planId;
+              const maxOrdersLabel =
+                p.features?.maxOrdersPerMonth === -1 || p.features?.maxOrdersPerMonth === 'Unlimited'
+                  ? 'Unlimited Orders'
+                  : `${p.features?.maxOrdersPerMonth} Orders/mo`;
+
               return (
                 <View
                   key={p.planId}
@@ -326,6 +332,41 @@ export const SubscriptionScreen = ({ navigation }) => {
                   <Text style={[styles.planDesc, { color: colors.textMuted }]}>
                     {p.description}
                   </Text>
+
+                  {/* Feature Highlights Pills */}
+                  {p.features && (
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                      <View style={{ backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>
+                          {p.features.maxStaff} Staff
+                        </Text>
+                      </View>
+                      <View style={{ backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>
+                          {p.features.maxMenuItems} Items
+                        </Text>
+                      </View>
+                      <View style={{ backgroundColor: isDark ? colors.surfaceSubtle : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 11, color: colors.textSecondary, fontWeight: '600' }}>
+                          {maxOrdersLabel}
+                        </Text>
+                      </View>
+                      {p.features.tableManagement ? (
+                        <View style={{ backgroundColor: isDark ? 'rgba(5, 150, 105, 0.2)' : '#ecfdf5', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                          <Text style={{ fontSize: 11, color: COLORS.primary, fontWeight: '700' }}>
+                            Table Mgmt
+                          </Text>
+                        </View>
+                      ) : null}
+                      {p.features.analytics ? (
+                        <View style={{ backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#eef2ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                          <Text style={{ fontSize: 11, color: '#4f46e5', fontWeight: '700' }}>
+                            Analytics
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+                  )}
 
                   {!isCurrent && (
                     <Button
@@ -455,7 +496,7 @@ export const SubscriptionScreen = ({ navigation }) => {
                 ]}
               >
                 <Text style={[styles.modalFeaturesTitle, { color: colors.textMuted }]}>
-                  INCLUDED QUOTAS
+                  INCLUDED QUOTAS & FEATURES
                 </Text>
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="people-outline" size={16} color={COLORS.primary} />
@@ -466,17 +507,49 @@ export const SubscriptionScreen = ({ navigation }) => {
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="restaurant-outline" size={16} color={COLORS.primary} />
                   <Text style={[styles.modalFeatureText, { color: colors.text }]}>
-                    Up to {selectedPlan.features.maxMenuItems} Items
+                    Up to {selectedPlan.features.maxMenuItems} Menu Items
                   </Text>
                 </View>
                 <View style={styles.modalFeatureRow}>
                   <Ionicons name="receipt-outline" size={16} color={COLORS.primary} />
                   <Text style={[styles.modalFeatureText, { color: colors.text }]}>
-                    {selectedPlan.features.maxOrdersPerMonth === 'Unlimited'
+                    {selectedPlan.features.maxOrdersPerMonth === 'Unlimited' || selectedPlan.features.maxOrdersPerMonth === -1
                       ? 'Unlimited Orders'
                       : `Up to ${selectedPlan.features.maxOrdersPerMonth} Orders / Month`}
                   </Text>
                 </View>
+                {selectedPlan.features.tableManagement ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="grid-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Table Management Included
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedPlan.features.analytics ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="bar-chart-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Advanced Sales Analytics
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedPlan.features.prioritySupport ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="headset-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Priority Support
+                    </Text>
+                  </View>
+                ) : null}
+                {selectedPlan.features.customBranding ? (
+                  <View style={styles.modalFeatureRow}>
+                    <Ionicons name="color-palette-outline" size={16} color={COLORS.primary} />
+                    <Text style={[styles.modalFeatureText, { color: colors.text }]}>
+                      Custom Restaurant Branding
+                    </Text>
+                  </View>
+                ) : null}
               </View>
             )}
 

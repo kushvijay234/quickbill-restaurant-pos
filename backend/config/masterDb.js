@@ -118,10 +118,24 @@ const seedDefaultPlans = async (PlanModel) => {
 
 const seedDefaultSuperAdmin = async (SuperAdminModel) => {
   try {
-    const existing = await SuperAdminModel.findOne({});
-    const email = (process.env.SUPERADMIN_EMAIL || 'superadmin@fastbillo.com').toLowerCase().trim();
-    const username = process.env.SUPERADMIN_USERNAME || 'superadmin';
-    const password = process.env.SUPERADMIN_PASSWORD || 'SuperAdmin@2026';
+    const rawEmail = process.env.SUPERADMIN_EMAIL;
+    const rawUsername = process.env.SUPERADMIN_USERNAME;
+    const password = process.env.SUPERADMIN_PASSWORD;
+
+    if (!rawEmail || !rawUsername || !password) {
+      console.warn('[Master DB] Notice: SUPERADMIN_EMAIL, SUPERADMIN_USERNAME, or SUPERADMIN_PASSWORD not set in environment. Skipping SuperAdmin seeding.');
+      return;
+    }
+
+    const email = rawEmail.toLowerCase().trim();
+    const username = rawUsername.trim();
+
+    let existing = await SuperAdminModel.findOne({
+      $or: [
+        { email },
+        { username }
+      ]
+    }).select('+password');
 
     if (!existing) {
       await SuperAdminModel.create({
@@ -130,11 +144,13 @@ const seedDefaultSuperAdmin = async (SuperAdminModel) => {
         password,
         role: 'superadmin'
       });
-      console.log(`[Master DB] Seeded default Platform SuperAdmin: ${email}`);
-    } else if (existing.email === 'superadmin@restobill.com') {
-      existing.email = 'superadmin@fastbillo.com';
+      console.log(`[Master DB] Seeded Platform SuperAdmin from env: ${email}`);
+    } else {
+      existing.email = email;
+      existing.username = username;
+      existing.password = password;
       await existing.save();
-      console.log(`[Master DB] Updated SuperAdmin email to: superadmin@fastbillo.com`);
+      console.log(`[Master DB] Synced Platform SuperAdmin from env: ${email}`);
     }
   } catch (err) {
     console.warn('[Master DB] Notice: SuperAdmin seeding skipped:', err.message);

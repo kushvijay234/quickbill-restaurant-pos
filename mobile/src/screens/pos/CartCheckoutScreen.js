@@ -70,7 +70,18 @@ export const CartCheckoutScreen = ({ navigation }) => {
           name: customer.name.trim() === '' ? 'Cash' : customer.name.trim(),
           mobile: customer.mobile.trim(),
         },
-        items,
+        items: items.map((ci) => ({
+          item: {
+            id: String(ci.item?.id || ci.item?._id || ''),
+            name: ci.item?.name || 'Item',
+            imageUrl: ci.item?.imageUrl || '',
+          },
+          selectedVariant: {
+            name: ci.selectedVariant?.name || 'Regular',
+            price: Number(ci.selectedVariant?.price) || 0,
+          },
+          quantity: ci.quantity || 1,
+        })),
         subtotal,
         tax,
         total,
