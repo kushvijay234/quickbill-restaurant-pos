@@ -137,7 +137,7 @@ async function provisionTenant({
 }) {
   const { Tenant, Subscription } = getMasterModels();
 
-  // 1. Auto-generate slug from restaurant name if not provided
+  // 1. Auto-generate slug from Business name if not provided
   let normalizedSlug = (slug || name || 'bistro')
     .toLowerCase()
     .trim()

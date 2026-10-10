@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { storageService } from './storageService';
-import { getApiBaseUrl } from './api';
+import { DEFAULT_API_URL } from '../constants/config';
 
 let isDispatching = false;
 
@@ -22,7 +22,10 @@ const sendLog = async ({
     console.error(consolePrefix, message, meta, error || '');
   }
 
-  // 2. Prevent infinite recursion if logging itself fails
+  // 2. Only persist errors and warnings to remote MongoDB database; info logs stay in console
+  if (level === 'info') return;
+
+  // 3. Prevent infinite recursion if logging itself fails
   if (isDispatching) return;
   if (endpoint && endpoint.includes('/logs')) return;
 
@@ -43,7 +46,13 @@ const sendLog = async ({
       }
     }
 
-    const baseUrl = getApiBaseUrl();
+    let baseUrl = DEFAULT_API_URL;
+    try {
+      const savedUrl = await storageService.getCustomApiUrl();
+      if (savedUrl) baseUrl = savedUrl;
+    } catch {
+      // Fallback to default
+    }
 
     let stack = '';
     if (error instanceof Error && error.stack) {

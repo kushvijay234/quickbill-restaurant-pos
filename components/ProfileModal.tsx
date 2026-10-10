@@ -31,7 +31,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!restaurantName || !address || !phone) {
-      setError('Restaurant Name, Address, and Phone are required.');
+      setError('Business Name, Address, and Phone are required.');
       return;
     }
 
@@ -69,7 +69,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ profile, onClose, onSave })
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="restaurantName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Restaurant Name</label>
+            <label htmlFor="restaurantName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Business Name</label>
             <input
               type="text"
               id="restaurantName"

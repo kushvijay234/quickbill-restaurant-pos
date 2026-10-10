@@ -134,7 +134,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
               )}
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              Manage Restaurant Plan
+              Manage Your Plan
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Upgrade or renew using Razorpay UPI, Cards, NetBanking, or EMI
@@ -180,8 +180,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
                 {currentSub.subscription?.currentPeriodEnd
                   ? new Date(currentSub.subscription.currentPeriodEnd).toLocaleDateString()
                   : currentSub.tenant.trialEndsAt
-                  ? new Date(currentSub.tenant.trialEndsAt).toLocaleDateString()
-                  : 'N/A'}
+                    ? new Date(currentSub.tenant.trialEndsAt).toLocaleDateString()
+                    : 'N/A'}
               </div>
             </div>
           </div>
@@ -192,21 +192,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
           <div className="p-1 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition ${
-                billingCycle === 'monthly'
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition ${billingCycle === 'monthly'
                   ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400'
-              }`}
+                }`}
             >
               Monthly Billing
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 ${
-                billingCycle === 'yearly'
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1 ${billingCycle === 'yearly'
                   ? 'bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400'
-              }`}
+                }`}
             >
               <span>Annual Billing</span>
               <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-100 text-emerald-700 font-bold">
@@ -220,20 +218,19 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const isCurrent = currentSub?.tenant.activePlan === plan.planId && currentSub?.tenant.status === 'active';
-            const price = billingCycle === 'yearly' 
-              ? Math.round(plan.priceInr * 0.8) 
+            const price = billingCycle === 'yearly'
+              ? Math.round(plan.priceInr * 0.8)
               : plan.priceInr;
 
             return (
               <div
                 key={plan.planId}
-                className={`p-6 rounded-2xl border transition duration-200 flex flex-col justify-between ${
-                  isCurrent
+                className={`p-6 rounded-2xl border transition duration-200 flex flex-col justify-between ${isCurrent
                     ? 'border-emerald-500 bg-emerald-50/20 dark:bg-emerald-950/20 ring-2 ring-emerald-500/20'
                     : plan.planId === 'pro'
-                    ? 'border-indigo-500 shadow-lg shadow-indigo-500/10 dark:bg-gray-800 ring-2 ring-indigo-500/20'
-                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                }`}
+                      ? 'border-indigo-500 shadow-lg shadow-indigo-500/10 dark:bg-gray-800 ring-2 ring-indigo-500/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                  }`}
               >
                 <div>
                   <div className="flex justify-between items-center">
@@ -265,14 +262,14 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
                     <div className="flex items-center gap-2">
                       <span className="text-emerald-500 font-bold">✓</span>
                       <span>
-                        {plan.features.maxOrdersPerMonth === -1 
-                          ? 'Unlimited Orders' 
+                        {plan.features.maxOrdersPerMonth === -1
+                          ? 'Unlimited Orders'
                           : `Up to ${plan.features.maxOrdersPerMonth} orders / mo`}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-emerald-500 font-bold">✓</span>
-                      <span>Up to {plan.features.maxMenuItems} Menu Items</span>
+                      <span>Up to {plan.features.maxMenuItems} Items</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={plan.features.tableManagement ? "text-emerald-500 font-bold" : "text-gray-400"}>
@@ -299,19 +296,18 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose, onSucces
                   <button
                     onClick={() => handleSelectPlan(plan)}
                     disabled={upgradingPlanId === plan.planId || isCurrent}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition ${
-                      isCurrent
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition ${isCurrent
                         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 cursor-default'
                         : plan.planId === 'pro'
-                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20'
-                        : 'bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-700 dark:hover:bg-gray-600'
-                    }`}
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20'
+                          : 'bg-gray-900 hover:bg-gray-800 text-white dark:bg-gray-700 dark:hover:bg-gray-600'
+                      }`}
                   >
                     {upgradingPlanId === plan.planId
                       ? 'Opening Razorpay...'
                       : isCurrent
-                      ? 'Current Plan'
-                      : 'Subscribe with Razorpay'}
+                        ? 'Current Plan'
+                        : 'Subscribe with Razorpay'}
                   </button>
                 </div>
               </div>

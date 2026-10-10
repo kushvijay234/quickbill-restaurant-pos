@@ -36,7 +36,7 @@ export const PastOrdersScreen = ({ navigation }) => {
       const data = await orderService.getOrders();
       setOrders(Array.isArray(data) ? data : data?.data || data?.orders || []);
     } catch (e) {
-      console.warn('Failed to load past orders:', e.message);
+      console.warn('Failed to load past bills:', e.message);
       setOrders([]);
     } finally {
       setLoading(false);
@@ -106,7 +106,7 @@ export const PastOrdersScreen = ({ navigation }) => {
         {/* Date Filter Tabs */}
         <View style={styles.filterTabs}>
           {[
-            { id: 'all', label: 'All Orders' },
+            { id: 'all', label: 'All Bills' },
             { id: 'today', label: 'Today' },
             { id: 'yesterday', label: 'Yesterday' },
           ].map((tab) => {

@@ -64,14 +64,14 @@ export const AddMenuItemModal = ({ visible, onClose, onAdd }) => {
       setVariants([{ name: 'Regular', price: '' }]);
       onClose();
     } catch (e) {
-      Alert.alert('Error', e.message || 'Failed to add menu item');
+      Alert.alert('Error', e.message || 'Failed to add item');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ModalContainer visible={visible} onClose={onClose} title="Add Menu Item">
+    <ModalContainer visible={visible} onClose={onClose} title="Add Item">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         <Input
           label="Item Name *"
@@ -128,7 +128,7 @@ export const AddMenuItemModal = ({ visible, onClose, onAdd }) => {
         ))}
 
         <Button
-          title="Save Menu Item"
+          title="Save Item"
           onPress={handleSubmit}
           loading={loading}
           size="lg"

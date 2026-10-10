@@ -101,7 +101,7 @@ export const LoginScreen = ({ navigation }) => {
             </Text>
 
             <Text style={[styles.brandSubtitle, { color: colors.textMuted }]}>
-              Sign in to your restaurant workspace
+              Sign in to your Business workspace
             </Text>
           </View>
 
@@ -124,7 +124,7 @@ export const LoginScreen = ({ navigation }) => {
 
             <Input
               label="Email Address or Username"
-              placeholder="e.g. test or owner@restaurant.com"
+              placeholder="e.g. test or owner@Business.com"
               value={usernameOrEmail}
               onChangeText={(text) => {
                 setUsernameOrEmail(text);
@@ -168,7 +168,7 @@ export const LoginScreen = ({ navigation }) => {
               >
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
                 <Text style={[styles.registerBtnText, { color: COLORS.primary }]}>
-                  Register Your Restaurant ({TRIAL_PERIOD_DAYS}-Day Free Trial)
+                  Register Your Business ({TRIAL_PERIOD_DAYS}-Day Free Trial)
                 </Text>
               </TouchableOpacity>
             </View>

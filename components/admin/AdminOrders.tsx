@@ -44,7 +44,7 @@ const AdminOrders: React.FC = () => {
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">All Orders</h2>
+                <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">All Bills</h2>
                 <div>
                     <label htmlFor="userFilter" className="sr-only">Filter by User</label>
                     <select 

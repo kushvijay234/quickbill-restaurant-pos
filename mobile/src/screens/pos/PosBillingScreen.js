@@ -171,7 +171,7 @@ export const PosBillingScreen = ({ navigation }) => {
           <View style={styles.topControlRow}>
             <View style={{ flex: 1 }}>
               <Input
-                placeholder="Search food items..."
+                placeholder="Search items..."
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 leftIcon={<Ionicons name="search-outline" size={18} color={colors.textMuted} />}
@@ -277,7 +277,7 @@ export const PosBillingScreen = ({ navigation }) => {
               ListEmptyComponent={
                 <View style={styles.emptyCartBox}>
                   <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-                    Cart is empty. Tap menu items to add.
+                    Cart is empty. Tap items to add.
                   </Text>
                 </View>
               }

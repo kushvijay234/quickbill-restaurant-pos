@@ -59,7 +59,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
 
   const handleSave = async () => {
     if (!restaurantName.trim()) {
-      Alert.alert('Validation Error', 'Restaurant name is required');
+      Alert.alert('Validation Error', 'name is required');
       return;
     }
 
@@ -83,7 +83,7 @@ export const RestaurantProfileScreen = ({ navigation }) => {
       });
 
       await refreshProfile();
-      Alert.alert('Success', 'Restaurant settings saved successfully!');
+      Alert.alert('Success', 'Profile settings saved successfully!');
     } catch (e) {
       Alert.alert('Error', e.message || 'Could not save profile');
     } finally {
@@ -191,10 +191,10 @@ export const RestaurantProfileScreen = ({ navigation }) => {
 
         {/* GENERAL RESTAURANT PROFILE */}
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Restaurant Information</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Business Information</Text>
 
           <Input
-            label="Restaurant Name *"
+            label="Business Name *"
             placeholder="e.g. Cafe Delight"
             value={restaurantName}
             onChangeText={setRestaurantName}
