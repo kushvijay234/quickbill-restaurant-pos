@@ -105,6 +105,13 @@ export const AdminDashboardScreen = ({ navigation }) => {
       screen: 'Subscription',
       color: '#f59e0b',
     },
+    {
+      title: 'Payment History',
+      desc: 'View all paid, cancelled & failed transactions',
+      icon: 'receipt',
+      screen: 'PaymentHistory',
+      color: '#10b981',
+    },
   ];
 
   return (

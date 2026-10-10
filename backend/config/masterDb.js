@@ -4,6 +4,7 @@ const TenantSchema = require('../models/master/Tenant');
 const PlanSchema = require('../models/master/Plan');
 const SubscriptionSchema = require('../models/master/Subscription');
 const SuperAdminSchema = require('../models/master/SuperAdmin');
+const PaymentTransactionSchema = require('../models/master/PaymentTransaction');
 
 let masterConnection = null;
 let masterModels = null;
@@ -86,7 +87,8 @@ const connectMasterDB = async () => {
       Tenant: masterConnection.model('Tenant', TenantSchema),
       Plan: masterConnection.model('Plan', PlanSchema),
       Subscription: masterConnection.model('Subscription', SubscriptionSchema),
-      SuperAdmin: masterConnection.model('SuperAdmin', SuperAdminSchema)
+      SuperAdmin: masterConnection.model('SuperAdmin', SuperAdminSchema),
+      PaymentTransaction: masterConnection.model('PaymentTransaction', PaymentTransactionSchema)
     };
 
     // Seed default plans if not already present

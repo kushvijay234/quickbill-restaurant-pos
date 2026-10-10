@@ -47,6 +47,7 @@ const App: React.FC = () => {
   const [menuRefreshKey, setMenuRefreshKey] = useState(0);
   const [isTaxIncluded, setIsTaxIncluded] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionModalTab, setSubscriptionModalTab] = useState<'plans' | 'history'>('plans');
   const [subscriptionRefreshKey, setSubscriptionRefreshKey] = useState(0);
 
   // Platform SuperAdmin Routing & Authentication State
@@ -409,7 +410,10 @@ useEffect(() => {
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300 flex flex-col">
       <SubscriptionBanner
-        onOpenPlans={() => setShowSubscriptionModal(true)}
+        onOpenPlans={() => {
+          setSubscriptionModalTab('plans');
+          setShowSubscriptionModal(true);
+        }}
         refreshTrigger={subscriptionRefreshKey}
       />
       <Header
@@ -423,7 +427,10 @@ useEffect(() => {
         onOpenProfile={() => setShowProfileModal(true)}
         user={user}
         onLogout={logout}
-        onOpenPlans={() => setShowSubscriptionModal(true)}
+        onOpenPlans={(tab) => {
+          setSubscriptionModalTab(tab || 'plans');
+          setShowSubscriptionModal(true);
+        }}
       />
       <main className="container mx-auto p-4 lg:p-8 flex-1">
         {activeView === 'admin' ? (
@@ -517,6 +524,7 @@ useEffect(() => {
       )}
       {showSubscriptionModal && (
         <SubscriptionModal
+          initialTab={subscriptionModalTab}
           onClose={() => setShowSubscriptionModal(false)}
           onSuccess={() => setSubscriptionRefreshKey(prev => prev + 1)}
         />

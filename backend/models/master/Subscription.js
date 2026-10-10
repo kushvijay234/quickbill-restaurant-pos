@@ -62,8 +62,10 @@ const SubscriptionSchema = new mongoose.Schema({
     invoiceId: { type: String },
     amount: { type: Number },
     date: { type: Date, default: Date.now },
-    status: { type: String, enum: ['paid', 'failed', 'refunded'], default: 'paid' },
+    status: { type: String, enum: ['paid', 'failed', 'cancelled', 'refunded'], default: 'paid' },
     razorpayPaymentId: { type: String },
+    orderId: { type: String },
+    failureReason: { type: String },
     receiptUrl: { type: String }
   }]
 }, {

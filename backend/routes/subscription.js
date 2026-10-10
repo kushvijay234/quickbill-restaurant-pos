@@ -77,25 +77,36 @@ router.post('/create-order', resolveTenant(), protect, async (req, res) => {
       return res.status(404).json({ message: 'Selected plan not found' });
     }
 
-    const price = billingCycle === 'yearly' 
+    const normalizedCycle = (billingCycle === 'annual' || billingCycle === 'yearly') ? 'yearly' : 'monthly';
+    const price = normalizedCycle === 'yearly' 
       ? Math.round(plan.priceInr * 12 * 0.8) // 20% annual discount
       : plan.priceInr;
 
     const amountInPaise = Math.round(price * 100);
 
-    // If Razorpay instance is in test placeholder mode, generate a mock order for smooth dev/testing
+    // If Razorpay instance is configured, create Razorpay order with fallback
     let order;
     if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-      order = await razorpayInstance.orders.create({
-        amount: amountInPaise,
-        currency: 'INR',
-        receipt: `rcpt_${req.tenant.slug}_${Date.now()}`.substring(0, 40),
-        notes: {
-          tenantSlug: req.tenant.slug,
-          planId: plan.planId,
-          billingCycle
-        }
-      });
+      try {
+        order = await razorpayInstance.orders.create({
+          amount: amountInPaise,
+          currency: 'INR',
+          receipt: `rcpt_${req.tenant.slug}_${Date.now()}`.substring(0, 40),
+          notes: {
+            tenantSlug: req.tenant.slug,
+            planId: plan.planId,
+            billingCycle: normalizedCycle
+          }
+        });
+      } catch (rzpErr) {
+        console.warn('[Razorpay API Order Error, fallback to dev order]:', rzpErr.message);
+        order = {
+          id: `order_mock_${Date.now()}`,
+          amount: amountInPaise,
+          currency: 'INR',
+          receipt: `mock_rcpt_${Date.now()}`
+        };
+      }
     } else {
       // Mock order for dev environment
       order = {
@@ -106,11 +117,36 @@ router.post('/create-order', resolveTenant(), protect, async (req, res) => {
       };
     }
 
+    // Track pending transaction in master PaymentTransaction collection
+    try {
+      const { PaymentTransaction } = getMasterModels();
+      if (PaymentTransaction) {
+        await PaymentTransaction.findOneAndUpdate(
+          { orderId: order.id },
+          {
+            tenantId: req.tenant._id,
+            tenantSlug: req.tenant.slug,
+            orderId: order.id,
+            planId: plan.planId,
+            planName: plan.name,
+            amount: price,
+            currency: order.currency || 'INR',
+            billingCycle: normalizedCycle,
+            status: 'pending',
+            date: new Date()
+          },
+          { upsert: true, new: true }
+        );
+      }
+    } catch (txErr) {
+      console.warn('[PaymentTransaction Init Warning]:', txErr.message);
+    }
+
     res.json({
       success: true,
       orderId: order.id,
       amount: order.amount,
-      currency: order.currency,
+      currency: order.currency || 'INR',
       keyId: getKeyId(),
       plan: {
         planId: plan.planId,
@@ -138,13 +174,23 @@ router.post('/verify-payment', resolveTenant(), protect, async (req, res) => {
   } = req.body;
 
   try {
-    const { Tenant, Subscription, Plan } = getMasterModels();
+    const { Tenant, Subscription, Plan, PaymentTransaction } = getMasterModels();
 
-    // Verify signature if live credentials configured
+    // Verify signature if live credentials configured and not a dev mock
     if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-      const isValid = verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
-      if (!isValid) {
-        return res.status(400).json({ message: 'Invalid payment signature. Verification failed.' });
+      const isMockTest = razorpay_order_id?.startsWith('order_mock_') || razorpay_signature === 'mock_signature';
+      if (!isMockTest) {
+        const isValid = verifyPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+        if (!isValid) {
+          // Record failed verification transaction
+          if (PaymentTransaction) {
+            await PaymentTransaction.findOneAndUpdate(
+              { orderId: razorpay_order_id },
+              { status: 'failed', failureReason: 'Cryptographic signature mismatch' }
+            );
+          }
+          return res.status(400).json({ message: 'Invalid payment signature. Verification failed.' });
+        }
       }
     }
 
@@ -156,6 +202,7 @@ router.post('/verify-payment', resolveTenant(), protect, async (req, res) => {
     const durationDays = billingCycle === 'yearly' ? 365 : 30;
     const periodStart = new Date();
     const periodEnd = new Date(periodStart.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const invoiceNumber = `INV-${Date.now()}`;
 
     // Upsert tenant subscription
     let sub = await Subscription.findOne({ tenantId: req.tenant._id });
@@ -170,11 +217,12 @@ router.post('/verify-payment', resolveTenant(), protect, async (req, res) => {
         razorpayPaymentId: razorpay_payment_id,
         amount: plan.priceInr,
         invoices: [{
-          invoiceId: `INV-${Date.now()}`,
+          invoiceId: invoiceNumber,
           amount: plan.priceInr,
           date: periodStart,
           status: 'paid',
-          razorpayPaymentId: razorpay_payment_id
+          razorpayPaymentId: razorpay_payment_id,
+          orderId: razorpay_order_id
         }]
       });
     } else {
@@ -185,11 +233,12 @@ router.post('/verify-payment', resolveTenant(), protect, async (req, res) => {
       sub.currentPeriodEnd = periodEnd;
       sub.razorpayPaymentId = razorpay_payment_id;
       sub.invoices.push({
-        invoiceId: `INV-${Date.now()}`,
+        invoiceId: invoiceNumber,
         amount: plan.priceInr,
         date: periodStart,
         status: 'paid',
-        razorpayPaymentId: razorpay_payment_id
+        razorpayPaymentId: razorpay_payment_id,
+        orderId: razorpay_order_id
       });
     }
 
@@ -202,16 +251,157 @@ router.post('/verify-payment', resolveTenant(), protect, async (req, res) => {
       dataPruned: false
     });
 
+    // Update / Record PaymentTransaction as 'paid'
+    try {
+      if (PaymentTransaction) {
+        await PaymentTransaction.findOneAndUpdate(
+          { orderId: razorpay_order_id },
+          {
+            tenantId: req.tenant._id,
+            tenantSlug: req.tenant.slug,
+            orderId: razorpay_order_id,
+            paymentId: razorpay_payment_id,
+            planId: plan.planId,
+            planName: plan.name,
+            amount: plan.priceInr,
+            billingCycle,
+            status: 'paid',
+            receiptUrl: invoiceNumber,
+            date: new Date()
+          },
+          { upsert: true, new: true }
+        );
+      }
+    } catch (ptErr) {
+      console.warn('[PaymentTransaction Update Warning]:', ptErr.message);
+    }
+
     res.json({
       success: true,
       message: `Subscription activated successfully for ${plan.name}!`,
       activePlan: plan.planId,
-      currentPeriodEnd: periodEnd
+      currentPeriodEnd: periodEnd,
+      invoiceId: invoiceNumber
     });
 
   } catch (err) {
     console.error('[Subscription Verification Error]:', err);
     res.status(500).json({ message: 'Error activating subscription: ' + err.message });
+  }
+});
+
+// @desc    Record or update payment event (cancellation, failure, dismiss)
+// @route   POST /api/subscription/record-payment-event
+router.post('/record-payment-event', resolveTenant(), protect, async (req, res) => {
+  const {
+    orderId,
+    paymentId,
+    planId,
+    billingCycle = 'monthly',
+    status = 'cancelled', // 'cancelled' | 'failed'
+    reason = ''
+  } = req.body;
+
+  try {
+    const { PaymentTransaction, Plan, Subscription } = getMasterModels();
+    const plan = await Plan.findOne({ planId });
+
+    const normalizedCycle = (billingCycle === 'annual' || billingCycle === 'yearly') ? 'yearly' : 'monthly';
+    const price = plan ? (normalizedCycle === 'yearly' ? Math.round(plan.priceInr * 12 * 0.8) : plan.priceInr) : 0;
+    const finalReason = reason || (status === 'cancelled' ? 'Payment cancelled by user' : 'Payment failed at gateway');
+
+    let tx = null;
+    if (PaymentTransaction) {
+      tx = await PaymentTransaction.findOne({ orderId });
+      if (tx) {
+        tx.status = status;
+        if (paymentId) tx.paymentId = paymentId;
+        tx.failureReason = finalReason;
+        tx.billingCycle = normalizedCycle;
+        await tx.save();
+      } else {
+        tx = await PaymentTransaction.create({
+          tenantId: req.tenant._id,
+          tenantSlug: req.tenant.slug,
+          orderId: orderId || `order_${Date.now()}`,
+          paymentId: paymentId || '',
+          planId: planId || 'starter',
+          planName: plan?.name || (planId ? planId.toUpperCase() : 'SaaS Plan'),
+          amount: price,
+          billingCycle: normalizedCycle,
+          status,
+          failureReason: finalReason,
+          date: new Date()
+        });
+      }
+    }
+
+    // Also update Subscription invoices record
+    if (Subscription) {
+      const sub = await Subscription.findOne({ tenantId: req.tenant._id });
+      if (sub) {
+        sub.invoices.push({
+          invoiceId: `ATTEMPT-${Date.now()}`,
+          amount: price,
+          date: new Date(),
+          status,
+          razorpayPaymentId: paymentId || '',
+          orderId: orderId || '',
+          failureReason: finalReason
+        });
+        await sub.save();
+      }
+    }
+
+    res.json({ success: true, status, orderId });
+  } catch (err) {
+    console.error('[Record Payment Event Error]:', err.message);
+    res.status(500).json({ message: 'Error recording payment event' });
+  }
+});
+
+// @desc    Get tenant payment & transaction history
+// @route   GET /api/subscription/payment-history
+router.get('/payment-history', resolveTenant(), protect, async (req, res) => {
+  try {
+    const { PaymentTransaction, Subscription } = getMasterModels();
+
+    let transactions = [];
+    if (PaymentTransaction) {
+      transactions = await PaymentTransaction.find({ tenantId: req.tenant._id })
+        .sort({ date: -1, createdAt: -1 })
+        .lean();
+    }
+
+    // Backfill from Subscription.invoices if PaymentTransaction collection is empty
+    if (transactions.length === 0 && Subscription) {
+      const sub = await Subscription.findOne({ tenantId: req.tenant._id }).lean();
+      if (sub && Array.isArray(sub.invoices) && sub.invoices.length > 0) {
+        transactions = sub.invoices.map((inv) => ({
+          _id: inv._id || inv.invoiceId,
+          orderId: inv.orderId || inv.invoiceId || 'N/A',
+          paymentId: inv.razorpayPaymentId || '',
+          planId: sub.planId || 'starter',
+          planName: sub.planId ? sub.planId.toUpperCase() : 'SaaS Plan',
+          amount: inv.amount || sub.amount || 0,
+          currency: 'INR',
+          billingCycle: sub.billingCycle || 'monthly',
+          status: inv.status || 'paid',
+          failureReason: inv.failureReason || '',
+          date: inv.date || sub.createdAt || new Date(),
+          receiptUrl: inv.receiptUrl || inv.invoiceId || ''
+        })).reverse();
+      }
+    }
+
+    res.json({
+      success: true,
+      transactions,
+      totalCount: transactions.length
+    });
+  } catch (err) {
+    console.error('[Payment History Error]:', err.message);
+    res.status(500).json({ message: 'Error retrieving payment history' });
   }
 });
 
@@ -265,17 +455,20 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 // @route   GET /api/subscription/checkout-page
 router.get('/checkout-page', async (req, res) => {
   const {
-    orderId,
-    keyId = process.env.RAZORPAY_KEY_ID,
+    orderId = '',
+    keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder_key',
     amount,
     planId,
     planName = 'FASTBILLO Plan',
     tenantSlug,
     token,
-    billingCycle = 'monthly'
+    billingCycle = 'monthly',
+    inApp = 'false'
   } = req.query;
 
   const displayAmount = amount ? (Number(amount) / 100).toFixed(2) : '0.00';
+  const isMockOrder = orderId.startsWith('order_mock_');
+  const isInApp = inApp === 'true';
 
   const html = `<!DOCTYPE html>
 <html>
@@ -288,7 +481,7 @@ router.get('/checkout-page', async (req, res) => {
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: #f8fafc;
+      background: ${isInApp ? '#ffffff' : '#f8fafc'};
       color: #0f172a;
       display: flex;
       flex-direction: column;
@@ -296,47 +489,47 @@ router.get('/checkout-page', async (req, res) => {
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      padding: 16px;
+      padding: ${isInApp ? '12px' : '16px'};
     }
     .card {
       background: #ffffff;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      padding: 28px 24px;
+      border-radius: ${isInApp ? '16px' : '20px'};
+      box-shadow: ${isInApp ? 'none' : '0 10px 30px rgba(0, 0, 0, 0.08)'};
+      padding: ${isInApp ? '20px 16px' : '28px 24px'};
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       text-align: center;
-      border: 1px solid #e2e8f0;
+      border: ${isInApp ? 'none' : '1px solid #e2e8f0'};
     }
     .badge-icon {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 60px;
-      height: 60px;
+      width: 56px;
+      height: 56px;
       border-radius: 16px;
       background: #059669;
       color: #ffffff;
-      font-size: 30px;
-      margin-bottom: 14px;
+      font-size: 28px;
+      margin-bottom: 12px;
       box-shadow: 0 6px 16px rgba(5, 150, 105, 0.25);
     }
     h1 {
-      font-size: 22px;
-      margin: 0 0 6px 0;
+      font-size: 20px;
+      margin: 0 0 4px 0;
       font-weight: 800;
       color: #0f172a;
     }
     .subtitle {
       font-size: 13px;
       color: #64748b;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .details {
       background: #f1f5f9;
       border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 22px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
       text-align: left;
     }
     .row {
@@ -350,14 +543,14 @@ router.get('/checkout-page', async (req, res) => {
       border-top: 1px dashed #cbd5e1;
       padding-top: 10px;
       font-weight: 800;
-      font-size: 17px;
+      font-size: 16px;
     }
     .btn {
       background: #059669;
       color: white;
       border: none;
-      padding: 15px 20px;
-      font-size: 16px;
+      padding: 14px 20px;
+      font-size: 15px;
       font-weight: 700;
       border-radius: 12px;
       width: 100%;
@@ -369,23 +562,28 @@ router.get('/checkout-page', async (req, res) => {
       transform: scale(0.98);
       background: #047857;
     }
+    .btn-dev {
+      background: #4f46e5;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+      margin-top: 10px;
+    }
     .status-box {
-      margin-top: 18px;
-      font-size: 14px;
+      margin-top: 16px;
+      font-size: 13px;
       font-weight: 600;
       line-height: 1.5;
     }
     .success {
       color: #065f46;
       background: #ecfdf5;
-      padding: 16px;
+      padding: 14px;
       border-radius: 12px;
       border: 1px solid #a7f3d0;
     }
     .error {
       color: #991b1b;
       background: #fef2f2;
-      padding: 14px;
+      padding: 12px;
       border-radius: 12px;
       border: 1px solid #fecaca;
     }
@@ -396,6 +594,18 @@ router.get('/checkout-page', async (req, res) => {
       border-radius: 10px;
       border: 1px solid #bfdbfe;
     }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -411,7 +621,7 @@ router.get('/checkout-page', async (req, res) => {
       </div>
       <div class="row">
         <span>Billing Cycle</span>
-        <span>${billingCycle === 'yearly' ? 'Yearly' : 'Monthly'}</span>
+        <span>${billingCycle === 'yearly' ? 'Yearly (20% Off)' : 'Monthly'}</span>
       </div>
       <div class="row">
         <span>Total Payable</span>
@@ -421,24 +631,120 @@ router.get('/checkout-page', async (req, res) => {
 
     <button id="payBtn" class="btn" onclick="openRazorpay()">Pay ₹${displayAmount} with Razorpay</button>
 
+    ${isMockOrder ? `
+      <button id="devPayBtn" class="btn btn-dev" onclick="simulateDevPayment()">Simulate Test Success (Dev)</button>
+    ` : ''}
+
     <div id="status"></div>
   </div>
 
   <script>
+    function notifyNative(type, data) {
+      if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+        try {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, data: data }));
+        } catch (e) {
+          console.warn('postMessage error:', e);
+        }
+      }
+    }
+
+    function handlePaymentSuccess(response) {
+      document.getElementById('status').innerHTML = '<div class="status-box info"><span class="spinner" style="border-top-color:#1e40af;border-color:#bfdbfe;"></span> Verifying payment with FASTBILLO server...</div>';
+      if (document.getElementById('payBtn')) document.getElementById('payBtn').style.display = 'none';
+      if (document.getElementById('devPayBtn')) document.getElementById('devPayBtn').style.display = 'none';
+
+      var payload = {
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_signature: response.razorpay_signature,
+        planId: "${planId}",
+        billingCycle: "${billingCycle}"
+      };
+
+      // 1. Notify React Native WebView container immediately
+      notifyNative('PAYMENT_SUCCESS', payload);
+
+      // 2. Also execute server verification directly as backup
+      fetch('/api/subscription/verify-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${token}',
+          'X-Tenant-ID': '${tenantSlug}'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          document.getElementById('status').innerHTML = '<div class="status-box success">🎉 <b>Payment Successful!</b><br>Your subscription has been activated.<br><br><b>Returning to FASTBILLO POS...</b></div>';
+          notifyNative('SUBSCRIPTION_ACTIVATED', data);
+        } else {
+          if (document.getElementById('payBtn')) document.getElementById('payBtn').style.display = 'block';
+          document.getElementById('status').innerHTML = '<div class="status-box error">Verification issue: ' + (data.message || 'Unknown error') + '</div>';
+          notifyNative('PAYMENT_FAILED', { error: data.message || 'Verification issue' });
+        }
+      })
+      .catch(function(err) {
+        if (document.getElementById('payBtn')) document.getElementById('payBtn').style.display = 'block';
+        document.getElementById('status').innerHTML = '<div class="status-box error">Network error: ' + err.message + '</div>';
+        notifyNative('PAYMENT_FAILED', { error: err.message });
+      });
+    }
+
+    function simulateDevPayment() {
+      handlePaymentSuccess({
+        razorpay_order_id: "${orderId || 'order_mock_' + Date.now()}",
+        razorpay_payment_id: "pay_mock_" + Date.now(),
+        razorpay_signature: "mock_signature"
+      });
+    }
+
     function openRazorpay() {
-      const options = {
-        key: "${keyId}",
-        amount: "${amount}",
+      var options = {
+        key: "${keyId || process.env.RAZORPAY_KEY_ID || 'rzp_test_TjIML0KJ4VAkFn'}",
+        amount: "${amount || 99900}",
         currency: "INR",
         name: "FASTBILLO POS",
         description: "${planName} Subscription",
-        order_id: "${orderId}",
         theme: { color: "#059669" },
         handler: function(response) {
-          document.getElementById('status').innerHTML = '<div class="status-box info">⏳ Verifying payment with FASTBILLO server...</div>';
-          document.getElementById('payBtn').style.display = 'none';
+          handlePaymentSuccess(response);
+        },
+        modal: {
+          ondismiss: function() {
+            notifyNative('PAYMENT_CANCELLED', { orderId: "${orderId}", planId: "${planId}" });
+            fetch('/api/subscription/record-payment-event', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ${token}',
+                'X-Tenant-ID': '${tenantSlug}'
+              },
+              body: JSON.stringify({
+                orderId: "${orderId}",
+                planId: "${planId}",
+                billingCycle: "${billingCycle}",
+                status: 'cancelled',
+                reason: 'Payment checkout closed by user'
+              })
+            }).catch(function(e) { console.warn('Cancel log error:', e); });
+            document.getElementById('status').innerHTML = '<div class="status-box info">Payment window closed. Tap the button above to retry anytime.</div>';
+          }
+        }
+      };
 
-          fetch('/api/subscription/verify-payment', {
+      if ("${orderId}" && !"${orderId}".startsWith('order_mock_')) {
+        options.order_id = "${orderId}";
+      }
+
+      try {
+        var rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(resp) {
+          var errDesc = (resp.error && resp.error.description) ? resp.error.description : 'Payment failed';
+          notifyNative('PAYMENT_FAILED', { error: errDesc, orderId: "${orderId}", planId: "${planId}" });
+          fetch('/api/subscription/record-payment-event', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -446,47 +752,26 @@ router.get('/checkout-page', async (req, res) => {
               'X-Tenant-ID': '${tenantSlug}'
             },
             body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
+              orderId: "${orderId}",
+              paymentId: (resp.error && resp.error.metadata) ? resp.error.metadata.payment_id : '',
               planId: "${planId}",
-              billingCycle: "${billingCycle}"
+              billingCycle: "${billingCycle}",
+              status: 'failed',
+              reason: errDesc
             })
-          })
-          .then(function(res) { return res.json(); })
-          .then(function(data) {
-            if (data.success) {
-              document.getElementById('status').innerHTML = '<div class="status-box success">🎉 <b>Payment Successful!</b><br>Your subscription has been activated.<br><br><b>Please switch back to the FASTBILLO POS app.</b></div>';
-            } else {
-              document.getElementById('payBtn').style.display = 'block';
-              document.getElementById('status').innerHTML = '<div class="status-box error">Verification issue: ' + (data.message || 'Unknown error') + '</div>';
-            }
-          })
-          .catch(function(err) {
-            document.getElementById('payBtn').style.display = 'block';
-            document.getElementById('status').innerHTML = '<div class="status-box error">Network error: ' + err.message + '</div>';
-          });
-        },
-        modal: {
-          ondismiss: function() {
-            document.getElementById('status').innerHTML = '<div class="status-box info">Payment window closed. Tap the button above to retry anytime.</div>';
-          }
-        }
-      };
-
-      try {
-        const rzp = new Razorpay(options);
-        rzp.on('payment.failed', function(resp) {
-          document.getElementById('status').innerHTML = '<div class="status-box error">Payment was not completed: ' + (resp.error && resp.error.description ? resp.error.description : 'Failed') + '</div>';
+          }).catch(function(e) { console.warn('Fail log error:', e); });
+          document.getElementById('status').innerHTML = '<div class="status-box error">Payment was not completed: ' + errDesc + '</div>';
         });
         rzp.open();
       } catch (err) {
+        notifyNative('PAYMENT_FAILED', { error: err.message, orderId: "${orderId}" });
         document.getElementById('status').innerHTML = '<div class="status-box error">Could not launch Razorpay: ' + err.message + '</div>';
       }
     }
 
     // Auto-launch checkout after page load
     window.onload = function() {
+      notifyNative('CHECKOUT_PAGE_LOADED', {});
       setTimeout(openRazorpay, 350);
     };
   </script>

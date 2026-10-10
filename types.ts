@@ -173,3 +173,19 @@ export interface ISuperAdminStats {
   currencyStats: Array<{ _id: string; count: number }>;
   recentTenants: ISuperAdminTenant[];
 }
+
+export interface IPaymentTransaction {
+  _id?: string;
+  orderId: string;
+  paymentId?: string;
+  planId: string;
+  planName: string;
+  amount: number;
+  currency: string;
+  billingCycle: 'monthly' | 'yearly';
+  status: 'paid' | 'pending' | 'cancelled' | 'failed';
+  failureReason?: string;
+  method?: string;
+  date: string | Date;
+  receiptUrl?: string;
+}
